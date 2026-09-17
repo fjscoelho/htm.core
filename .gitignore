@@ -54,3 +54,6 @@ html/
 ## Experiments. Files produced by experiments
 /py/htm/advanced/examples/thalamus/images/
 
+## Virtual environment
+.venv/
+

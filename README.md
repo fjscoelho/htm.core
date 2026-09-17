@@ -83,7 +83,7 @@ git clone https://github.com/htm-community/htm.core
     Must create a Python virtual environment.
 	Create a virtual environment: 	`python3 -m venv .venv`
 
-	Activate the virtual environment: `.venv/bin/activate` (or .venv\Scripts\activate on Windows)
+	Activate the virtual environment: `source .venv/bin/activate` (or .venv\Scripts\activate on Windows)
 
 		  
 
