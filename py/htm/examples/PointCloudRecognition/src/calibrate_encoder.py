@@ -16,12 +16,16 @@ Pipeline:
 """
 
 import json
+import sys
 from pathlib import Path
 from typing import List, Tuple, Sequence
 
 import numpy as np
 
-from place_encoder import PointCloud, PlaceDescriptor, SDRPlaceEncoder
+root_project = Path(__file__).resolve().parent.parent # py/htm/examples/PointCloudRecognition
+sys.path.append(str(root_project))
+
+from src.place_encoder import PointCloud, PlaceDescriptor, SDRPlaceEncoder
 
 
 # ============================================================

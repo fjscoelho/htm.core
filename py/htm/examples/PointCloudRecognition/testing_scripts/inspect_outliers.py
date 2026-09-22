@@ -4,11 +4,15 @@ Inspect the distribution of high-level descriptors to choose rejection
 thresholds rationally.
 """
 
+import sys
 from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 
-from place_encoder import PointCloud, PlaceDescriptor
+root_project = Path(__file__).resolve().parent.parent # py/htm/examples/PointCloudRecognition
+sys.path.append(str(root_project))
+
+from src.place_encoder import PointCloud, PlaceDescriptor
 
 
 DATA_DIR = Path("/home/fabio/Documents/SPOT_Data/extracted_spot_ros2_data")

@@ -7,11 +7,15 @@ so rotating the input cloud should produce an SDR that overlaps the
 original in ~ all active bits.
 """
 
-import numpy as np
+import sys
 from pathlib import Path
+import numpy as np
 
-from place_encoder import PointCloud, PlaceDescriptor
-from calibrate_encoder import load_encoder_from_config
+root_project = Path(__file__).resolve().parent.parent # py/htm/examples/PointCloudRecognition
+sys.path.append(str(root_project))
+
+from src.place_encoder import PointCloud, PlaceDescriptor
+from src.calibrate_encoder import load_encoder_from_config
 
 
 def sdr_overlap(sdr_a: np.ndarray, sdr_b: np.ndarray) -> int:
@@ -104,7 +108,7 @@ def test_place_discrimination(
 # ============================================================
 if __name__ == "__main__":
     DATA_DIR = Path("/home/fabio/Documents/SPOT_Data/extracted_spot_ros2_data")
-    CONFIG_PATH = Path("encoder_config.json")
+    CONFIG_PATH = Path(root_project / "src/encoder_config.json")
 
     # 1. Load calibrated encoder
     print(f"Loading encoder from {CONFIG_PATH}...")

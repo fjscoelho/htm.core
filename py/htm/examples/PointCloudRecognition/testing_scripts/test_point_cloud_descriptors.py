@@ -1,7 +1,13 @@
 # test_point_cloud_descriptors.py
 
+import sys
+from pathlib import Path
 import numpy as np
-from place_encoder import (
+
+root_project = Path(__file__).resolve().parent.parent # py/htm/examples/PointCloudRecognition
+sys.path.append(str(root_project))
+
+from src.place_encoder import (
     PointCloud, PlaceDescriptor,
     plot_pointcloud_and_descriptors,
 )

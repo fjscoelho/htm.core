@@ -57,3 +57,5 @@ html/
 ## Virtual environment
 .venv/
 
+## Numpy files
+.npy
