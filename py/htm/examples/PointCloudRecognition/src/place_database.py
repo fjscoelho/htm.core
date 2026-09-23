@@ -191,8 +191,8 @@ class PlaceDatabase:
         # ---- 2. Decide match vs. create ----
         matched = best_overlap_ratio >= self.match_threshold
 
-        print(f"Query: overlap={best_overlap_ratio:.3f}, idx={best_place_idx}, "  
-              f"matched={'yes' if matched else 'no'}")
+        # print(f"Query: overlap={best_overlap_ratio:.3f}, idx={best_place_idx}, "  
+        #       f"matched={'yes' if matched else 'no'}")
 
         if not matched:
             # Create new place
