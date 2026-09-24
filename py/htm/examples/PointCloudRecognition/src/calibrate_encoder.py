@@ -33,36 +33,37 @@ from src.place_encoder import PointCloud, PlaceDescriptor, SDRPlaceEncoder
 # ============================================================
 # Feature names, in the same order as PlaceDescriptor.to_vector().
 FEATURE_NAMES: List[str] = (
-    [f"eigval_{i+1}" for i in range(3)] +
-    [f"hist_z_{i}"   for i in range(10)] +
-    [f"hist_r_{i}"   for i in range(10)] +
-    ["height", "density", "volume", "mean_radius", "std_radius"]
+    [f"eigval_{i+1}" for i in range(3)] +       # 0..2
+    [f"hist_z_{i}"   for i in range(10)] +      # 3..12
+    [f"hist_r_{i}"   for i in range(10)] +      # 13..22
+    ["height", "density", "volume",             # 23..25
+     "mean_radius", "std_radius",               # 26..27
+     "mean_height", "std_height"]               # 28..29  <-- NOVO
 )
-
 # Physical lower bounds per feature. All our features are non-negative.
-FEATURE_LOWER_BOUND: np.ndarray = np.array(
-    [0.0] * 3 +    # eigval_1..3     -> eigenvalues >= 0
-    [0.0] * 10 +   # hist_z_0..9     -> normalized histogram >= 0
-    [0.0] * 10 +   # hist_r_0..9     -> normalized histogram >= 0
-    [0.0,          # height          -> bbox >= 0
-     0.0,          # density         -> log1p(N) >= 0
-     0.0,          # volume          -> ellipsoid volume >= 0
-     0.0,          # mean_radius     -> distance >= 0
-     0.0],         # std_radius      -> std >= 0
+FEATURE_LOWER_BOUND = np.array(
+    [0.0] * 3 +        # eigval_1..3
+    [0.0] * 10 +       # hist_z_0..9
+    [0.0] * 10 +       # hist_r_0..9
+    [0.0,              # height
+     0.0,              # density
+     0.0,              # volume
+     0.0,              # mean_radius
+     0.0,              # std_radius
+     -np.inf,          # mean_height  <-- pode ser negativo!
+     -np.inf],         # std_height   <-- std é >= 0, mas deixamos -inf por segurança
     dtype=np.float64,
 )
 
 # Physical upper bounds per feature. Only the normalized histograms have a
 # hard ceiling at 1.0; the rest are unbounded in principle.
-FEATURE_UPPER_BOUND: np.ndarray = np.array(
-    [np.inf] * 3 +   # eigval_1..3     -> unbounded
-    [1.0] * 10 +     # hist_z_0..9     -> normalized <= 1
-    [1.0] * 10 +     # hist_r_0..9     -> normalized <= 1
-    [np.inf,         # height
-     np.inf,         # density
-     np.inf,         # volume
-     np.inf,         # mean_radius
-     np.inf],        # std_radius
+FEATURE_UPPER_BOUND = np.array(
+    [np.inf] * 3 +
+    [1.0] * 10 +
+    [1.0] * 10 +
+    [np.inf, np.inf, np.inf, np.inf, np.inf,
+     np.inf,           # mean_height
+     np.inf],          # std_height
     dtype=np.float64,
 )
 

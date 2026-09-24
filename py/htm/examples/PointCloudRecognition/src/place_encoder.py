@@ -15,6 +15,8 @@ class PointCloud:
     """
     Encapsulates a (N, 3) point cloud with basic geometric operations.
     Assumes Z is the vertical axis (yaw = rotation around Z).
+    Points are expected to be in the SENSOR frame: the origin (0,0,0)
+    coincides with the sensor's optical/acoustic center.
     """
     points: np.ndarray  # (N, 3)
 
@@ -32,7 +34,7 @@ class PointCloud:
 
     @property
     def centroid(self) -> np.ndarray:
-        """3D centroid."""
+        """3D centroid (geometric, not used as anchor)."""
         return self.points.mean(axis=0)
 
     @property
@@ -41,42 +43,35 @@ class PointCloud:
         return self.centroid[:2]
 
     @property
-    def centered(self) -> np.ndarray:
-        """Points relative to centroid (N, 3)."""
-        return self.points - self.centroid
-
-    @property
     def xy(self) -> np.ndarray:
-        """XY coordinates relative to centroid (N, 2)."""
-        return self.centered[:, :2]
+        """XY coordinates in the SENSOR frame."""
+        return self.points[:, :2]
 
     @property
     def z(self) -> np.ndarray:
-        """Z coordinate relative to centroid (N,)."""
-        return self.centered[:, 2]
+        """Z coordinate in the SENSOR frame."""
+        return self.points[:, 2]
 
     @property
     def r_xy(self) -> np.ndarray:
-        """Radial distance in XY relative to centroid (N,)."""
-        return np.linalg.norm(self.xy, axis=1)
+        """Radial distance in XY relative to the SENSOR origin."""
+        return np.linalg.norm(self.points[:, :2], axis=1)
 
     # ---------- Constructors ----------
     @classmethod
     def from_npy(cls, path: str | Path) -> "PointCloud":
         """Load from a .npy file."""
         pc = np.load(str(path))
-        return cls(points=pc) # == PointCloud(points=pc)
+        return cls(points=pc)
 
     # ---------- Operations ----------
     def rotated_yaw(self, angle_rad: float) -> "PointCloud":
-        """Return a new PointCloud rotated around the centroid (Z axis)."""
+        """Return a new PointCloud rotated around the SENSOR origin (Z axis)."""
         c, s = np.cos(angle_rad), np.sin(angle_rad)
         R = np.array([[c, -s, 0.0],
                       [s,  c, 0.0],
                       [0.0, 0.0, 1.0]])
-        centered = self.centered
-        rotated = centered @ R.T + self.centroid
-        return PointCloud(points=rotated)
+        return PointCloud(points=self.points @ R.T)
 
     # ---------- Visualization ----------
     def plot_top_view(self, ax=None, show_centroid: bool = True):
@@ -92,6 +87,11 @@ class PointCloud:
                        edgecolors="black", linewidths=1.0, zorder=5,
                        label=f"centroid ({cx:.2f}, {cy:.2f})")
 
+        # Mark the sensor origin
+        ax.scatter([0], [0], s=140, c="lime", marker="o",
+                   edgecolors="black", linewidths=1.0, zorder=6,
+                   label="sensor origin")
+
         ax.set_aspect("equal")
         ax.set_title(f"Top view (N={self.n_points})")
         ax.set_xlabel("x"); ax.set_ylabel("y")
@@ -105,17 +105,29 @@ class PointCloud:
 @dataclass
 class PlaceDescriptor:
     """
-    Yaw-invariant descriptors of a point cloud.
-    Use PlaceDescriptor.from_pointcloud(pc) to construct.
+    Yaw-invariant descriptors anchored at the SENSOR ORIGIN (0, 0, 0).
+
+    Rationale
+    ---------
+    The centroid of a point cloud shifts with which points were observed,
+    so two captures from the same physical pose can have different centroids.
+    The sensor origin, in contrast, is fixed: captures from the same pose
+    produce identical anchors, which stabilizes the features.
+
+    All features below are invariant to yaw rotation around Z, while still
+    preserving information about the robot's vertical pose (mean_height)
+    and sensor-axis alignment.
     """
-    eigvals: np.ndarray         # (3,) eigenvalues of 3D covariance (descending)
-    hist_z: np.ndarray          # (n_bins_z,) normalized height histogram
-    hist_r: np.ndarray          # (n_bins_r,) normalized radial-distance histogram
-    height: float               # height = z_max - z_min
-    density: float              # density = log1p(N)
-    volume: float               # volume of the covariance ellipsoid
-    mean_radius: float          # mean radial distance
-    std_radius: float           # std of radial distance
+    eigvals: np.ndarray      # (3,) eigenvalues of 3D covariance (descending)
+    hist_z: np.ndarray       # (n_bins_z,) normalized z histogram (sensor frame)
+    hist_r: np.ndarray       # (n_bins_r,) normalized radial histogram (sensor frame)
+    height: float            # z_max - z_min (sensor frame)
+    density: float           # log1p(N)
+    volume: float            # volume of the covariance ellipsoid
+    mean_radius: float       # mean radial distance to sensor
+    std_radius: float        # std of radial distance to sensor
+    mean_height: float       # mean z in sensor frame
+    std_height: float        # std of z in sensor frame
 
     # ---------- Main constructor ----------
     @classmethod
@@ -128,32 +140,33 @@ class PlaceDescriptor:
         r_range: Optional[Tuple[float, float]] = None,
     ) -> "PlaceDescriptor":
         """
-        Compute yaw-invariant descriptors.
+        Compute yaw-invariant descriptors anchored at the sensor origin.
 
         Parameters
         ----------
         pc : PointCloud
+            Points in the sensor frame (origin = sensor).
         n_bins_z, n_bins_r : int
+            Number of histogram bins.
         z_range, r_range : optional (min, max)
-            If given, uses fixed ranges (recommended for cross-cloud comparison).
+            Fixed ranges for histograms (recommended for cross-cloud
+            comparison). If None, uses the per-cloud min/max.
         """
         N = pc.n_points
-        z = pc.z
-        r = pc.r_xy
-        centered = pc.centered
-
-        # --- 3D covariance eigenvalues (rotation-invariant) ---
-        cov = np.cov(centered.T)
-        eigvals = np.sort(np.linalg.eigvalsh(cov))[::-1]  # λ1 ≥ λ2 ≥ λ3
-
-        # Guard 1: minimum points
         if N < 100:
             raise ValueError(f"Too few points: {N}")
 
-        # Guard 2: non-negative eigenvalues
-        eigvals = np.maximum(eigvals, 0.0)
+        pts = pc.points              # (N, 3) in sensor frame
+        z = pts[:, 2]
+        xy = pts[:, :2]
+        r = np.linalg.norm(xy, axis=1)
 
-        # --- Histograms ---
+        # --- 3D covariance eigenvalues (rotation-invariant) ---
+        cov = np.cov(pts.T)
+        eigvals = np.sort(np.linalg.eigvalsh(cov))[::-1]  # λ1 ≥ λ2 ≥ λ3
+        eigvals = np.maximum(eigvals, 0.0)                # guard: non-negative
+
+        # --- Histograms (sensor-anchored) ---
         z_range = cls._fix_range(z_range, z,
                                  default_min=z.min(), default_max=z.max())
         r_range = cls._fix_range(r_range, r,
@@ -164,14 +177,15 @@ class PlaceDescriptor:
         hist_z = hist_z.astype(np.float64) / N
         hist_r = hist_r.astype(np.float64) / N
 
-        # --- Scalars ---
-        bbox = pc.points.max(axis=0) - pc.points.min(axis=0)
+        # --- Scalars (all in sensor frame) ---
+        bbox = pts.max(axis=0) - pts.min(axis=0)
         height = float(bbox[2])
         density = float(np.log1p(N))
-        # Guard 3: numerical safety for volume
         volume_elipsoide = float((4/3) * np.pi * np.sqrt(np.prod(eigvals) + 1e-12))
         mean_radius = float(r.mean())
         std_radius = float(r.std())
+        mean_height = float(z.mean())
+        std_height = float(z.std())
 
         return cls(
             eigvals=eigvals,
@@ -182,6 +196,8 @@ class PlaceDescriptor:
             volume=volume_elipsoide,
             mean_radius=mean_radius,
             std_radius=std_radius,
+            mean_height=mean_height,
+            std_height=std_height,
         )
 
     # ---------- Helpers ----------
@@ -196,13 +212,18 @@ class PlaceDescriptor:
 
     # ---------- Public API ----------
     def to_vector(self) -> np.ndarray:
-        """Concatenate all features into a 1D vector (for comparison/debug)."""
+        """Concatenate all features into a 1D vector (order matters)."""
         return np.concatenate([
-            self.eigvals,
-            self.hist_z,
-            self.hist_r,
-            [self.height, self.density, self.volume,
-             self.mean_radius, self.std_radius],
+            self.eigvals,                                # 3
+            self.hist_z,                                 # n_bins_z
+            self.hist_r,                                 # n_bins_r
+            [self.height,                                # 1
+             self.density,                               # 1
+             self.volume,                                # 1
+             self.mean_radius,                           # 1
+             self.std_radius,                            # 1
+             self.mean_height,                           # 1
+             self.std_height],                           # 1
         ])
 
     def distance_to(self, other: "PlaceDescriptor") -> float:
@@ -217,20 +238,20 @@ class PlaceDescriptor:
 
     # ---------- Visualization ----------
     def plot_histograms(self, axs=None):
-        """Plot Z and radial histograms."""
+        """Plot z and radial histograms."""
         if axs is None:
             _, axs = plt.subplots(1, 2, figsize=(10, 3.5))
         axs[0].bar(range(len(self.hist_z)), self.hist_z)
-        axs[0].set_title("hist_z (heights, normalized)")
+        axs[0].set_title("hist_z (sensor frame, normalized)")
         axs[0].set_xlabel("bin"); axs[0].set_ylabel("density")
         axs[1].bar(range(len(self.hist_r)), self.hist_r)
-        axs[1].set_title("hist_r (radial distance XY)")
+        axs[1].set_title("hist_r (sensor-anchored)")
         axs[1].set_xlabel("bin"); axs[1].set_ylabel("density")
         return axs
 
 
 # ============================================================
-# SDRPlaceEncoder
+# SDRPlaceEncoder  (unchanged)
 # ============================================================
 class SDRPlaceEncoder:
     """
