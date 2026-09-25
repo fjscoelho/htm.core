@@ -1,1199 +1,1339 @@
 {
   "sdr_size": 41800,
-  "match_threshold": 0.82,
+  "match_threshold": 0.85,
   "yaw_tolerance_rad": 0.2617993877991494,
-  "next_place_id": 85,
+  "next_place_id": 95,
   "n_queries": 105,
-  "n_matches": 20,
-  "n_creations": 85,
+  "n_matches": 10,
+  "n_creations": 95,
   "places": [
     {
       "place_id": 0,
       "visit_count": 2,
-      "first_seen_ts": 1790359818.5445747,
-      "last_seen_ts": 1790359818.5604331,
+      "first_seen_ts": 1790368712.554703,
+      "last_seen_ts": 1790368712.570768,
       "label": "wp_0000_1786110757_821066733_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 2,
-          "last_seen_ts": 1790359818.5604527
+          "last_seen_ts": 1790368712.570789
         }
       ]
     },
     {
       "place_id": 1,
-      "visit_count": 4,
-      "first_seen_ts": 1790359818.5495815,
-      "last_seen_ts": 1790359819.023468,
+      "visit_count": 3,
+      "first_seen_ts": 1790368712.5599566,
+      "last_seen_ts": 1790368713.08848,
       "label": "wp_0001_1786110764_807464836_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
-          "visit_count": 4,
-          "last_seen_ts": 1790359819.0234823
+          "visit_count": 3,
+          "last_seen_ts": 1790368713.088498
         }
       ]
     },
     {
       "place_id": 2,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.5530968,
-      "last_seen_ts": 1790359818.5530968,
+      "first_seen_ts": 1790368712.5634766,
+      "last_seen_ts": 1790368712.5634766,
       "label": "wp_0002_1786110766_170705611_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.553095
+          "last_seen_ts": 1790368712.5634751
         }
       ]
     },
     {
       "place_id": 3,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.5575027,
-      "last_seen_ts": 1790359818.5575027,
+      "first_seen_ts": 1790368712.5677722,
+      "last_seen_ts": 1790368712.5677724,
       "label": "wp_0003_1786110769_785588531_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.5575008
+          "last_seen_ts": 1790368712.5677705
         }
       ]
     },
     {
       "place_id": 4,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.5630097,
-      "last_seen_ts": 1790359818.5630097,
+      "first_seen_ts": 1790368712.5734603,
+      "last_seen_ts": 1790368712.5734603,
       "label": "wp_0005_1786110778_353720597_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.563008
+          "last_seen_ts": 1790368712.573458
         }
       ]
     },
     {
       "place_id": 5,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.5654757,
-      "last_seen_ts": 1790359818.5654757,
+      "first_seen_ts": 1790368712.5759985,
+      "last_seen_ts": 1790368712.5759985,
       "label": "wp_0006_1786110783_349108424_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.565474
+          "last_seen_ts": 1790368712.5759964
         }
       ]
     },
     {
       "place_id": 6,
-      "visit_count": 2,
-      "first_seen_ts": 1790359818.5674615,
-      "last_seen_ts": 1790359818.9702265,
+      "visit_count": 1,
+      "first_seen_ts": 1790368712.5779538,
+      "last_seen_ts": 1790368712.5779538,
       "label": "wp_0007_1786110784_508765076_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
-          "visit_count": 2,
-          "last_seen_ts": 1790359818.9702358
+          "visit_count": 1,
+          "last_seen_ts": 1790368712.577952
         }
       ]
     },
     {
       "place_id": 7,
-      "visit_count": 6,
-      "first_seen_ts": 1790359818.5710187,
-      "last_seen_ts": 1790359818.9649117,
+      "visit_count": 3,
+      "first_seen_ts": 1790368712.5816126,
+      "last_seen_ts": 1790368713.0239873,
       "label": "wp_0008_1786110787_838135379_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
-          "visit_count": 6,
-          "last_seen_ts": 1790359818.964922
+          "visit_count": 3,
+          "last_seen_ts": 1790368713.0240057
         }
       ]
     },
     {
       "place_id": 8,
-      "visit_count": 1,
-      "first_seen_ts": 1790359818.5787213,
-      "last_seen_ts": 1790359818.5787215,
-      "label": "wp_0010_1786110793_034825287_pointcloud_sensor.npy",
+      "visit_count": 2,
+      "first_seen_ts": 1790368712.5851402,
+      "last_seen_ts": 1790368712.5897171,
+      "label": "wp_0009_1786110789_475020577_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
-          "visit_count": 1,
-          "last_seen_ts": 1790359818.578719
+          "visit_count": 2,
+          "last_seen_ts": 1790368712.5897312
         }
       ]
     },
     {
       "place_id": 9,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.5823135,
-      "last_seen_ts": 1790359818.5823138,
+      "first_seen_ts": 1790368712.5935395,
+      "last_seen_ts": 1790368712.5935395,
       "label": "wp_0011_1786110794_621802652_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.5823119
+          "last_seen_ts": 1790368712.5935373
         }
       ]
     },
     {
       "place_id": 10,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.5853946,
-      "last_seen_ts": 1790359818.5853949,
+      "first_seen_ts": 1790368712.5967333,
+      "last_seen_ts": 1790368712.5967333,
       "label": "wp_0012_1786110797_086218465_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.5853932
+          "last_seen_ts": 1790368712.5967317
         }
       ]
     },
     {
       "place_id": 11,
-      "visit_count": 2,
-      "first_seen_ts": 1790359818.5888138,
-      "last_seen_ts": 1790359818.5926964,
+      "visit_count": 1,
+      "first_seen_ts": 1790368712.6001215,
+      "last_seen_ts": 1790368712.6001215,
       "label": "wp_0013_1786110799_247236420_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
-          "visit_count": 2,
-          "last_seen_ts": 1790359818.5927057
+          "visit_count": 1,
+          "last_seen_ts": 1790368712.60012
         }
       ]
     },
     {
       "place_id": 12,
-      "visit_count": 2,
-      "first_seen_ts": 1790359818.595548,
-      "last_seen_ts": 1790359818.6081173,
-      "label": "wp_0015_1786110805_135933447_pointcloud_sensor.npy",
+      "visit_count": 1,
+      "first_seen_ts": 1790368712.604067,
+      "last_seen_ts": 1790368712.604067,
+      "label": "wp_0014_1786110803_624996117_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
-          "visit_count": 2,
-          "last_seen_ts": 1790359818.6081262
+          "visit_count": 1,
+          "last_seen_ts": 1790368712.604065
         }
       ]
     },
     {
       "place_id": 13,
       "visit_count": 2,
-      "first_seen_ts": 1790359818.5997999,
-      "last_seen_ts": 1790359818.6047144,
-      "label": "wp_0016_1786110806_976781705_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.6069582,
+      "last_seen_ts": 1790368712.6198063,
+      "label": "wp_0015_1786110805_135933447_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 2,
-          "last_seen_ts": 1790359818.6047254
+          "last_seen_ts": 1790368712.6198175
         }
       ]
     },
     {
       "place_id": 14,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.6145716,
-      "last_seen_ts": 1790359818.6145716,
-      "label": "wp_0019_1786110813_649439292_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.61124,
+      "last_seen_ts": 1790368712.61124,
+      "label": "wp_0016_1786110806_976781705_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.6145694
+          "last_seen_ts": 1790368712.6112382
         }
       ]
     },
     {
       "place_id": 15,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.617284,
-      "last_seen_ts": 1790359818.617284,
-      "label": "wp_0020_1786110815_179070697_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.6164038,
+      "last_seen_ts": 1790368712.6164038,
+      "label": "wp_0017_1786110809_324823545_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.6172824
+          "last_seen_ts": 1790368712.6164017
         }
       ]
     },
     {
       "place_id": 16,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.6204276,
-      "last_seen_ts": 1790359818.6204276,
-      "label": "wp_0021_1786110817_533524434_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.626916,
+      "last_seen_ts": 1790368712.6269162,
+      "label": "wp_0019_1786110813_649439292_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.620426
+          "last_seen_ts": 1790368712.6269135
         }
       ]
     },
     {
       "place_id": 17,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.6238406,
-      "last_seen_ts": 1790359818.6238408,
-      "label": "wp_0022_1786110822_347741942_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.6296108,
+      "last_seen_ts": 1790368712.6296108,
+      "label": "wp_0020_1786110815_179070697_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.623839
+          "last_seen_ts": 1790368712.6296086
         }
       ]
     },
     {
       "place_id": 18,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.6273067,
-      "last_seen_ts": 1790359818.6273067,
-      "label": "wp_0023_1786110823_915556231_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.6326125,
+      "last_seen_ts": 1790368712.6326125,
+      "label": "wp_0021_1786110817_533524434_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.627305
+          "last_seen_ts": 1790368712.6326108
         }
       ]
     },
     {
       "place_id": 19,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.632044,
-      "last_seen_ts": 1790359818.6320443,
-      "label": "wp_0024_1786110828_069132187_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.6358576,
+      "last_seen_ts": 1790368712.6358578,
+      "label": "wp_0022_1786110822_347741942_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.6320424
+          "last_seen_ts": 1790368712.6358564
         }
       ]
     },
     {
       "place_id": 20,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.637517,
-      "last_seen_ts": 1790359818.637517,
-      "label": "wp_0025_1786110829_452019233_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.6398995,
+      "last_seen_ts": 1790368712.6398995,
+      "label": "wp_0023_1786110823_915556231_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.6375153
+          "last_seen_ts": 1790368712.639896
         }
       ]
     },
     {
       "place_id": 21,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.6447423,
-      "last_seen_ts": 1790359818.6447423,
-      "label": "wp_0026_1786110832_007517108_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.645638,
+      "last_seen_ts": 1790368712.645638,
+      "label": "wp_0024_1786110828_069132187_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.64474
+          "last_seen_ts": 1790368712.6456354
         }
       ]
     },
     {
       "place_id": 22,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.6495774,
-      "last_seen_ts": 1790359818.6495776,
-      "label": "wp_0027_1786110833_973277452_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.6517909,
+      "last_seen_ts": 1790368712.6517909,
+      "label": "wp_0025_1786110829_452019233_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.6495757
+          "last_seen_ts": 1790368712.6517875
         }
       ]
     },
     {
       "place_id": 23,
-      "visit_count": 2,
-      "first_seen_ts": 1790359818.6562352,
-      "last_seen_ts": 1790359818.6621525,
-      "label": "wp_0028_1786110836_440355510_pointcloud_sensor.npy",
+      "visit_count": 1,
+      "first_seen_ts": 1790368712.6596985,
+      "last_seen_ts": 1790368712.6596987,
+      "label": "wp_0026_1786110832_007517108_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
-          "visit_count": 2,
-          "last_seen_ts": 1790359818.6621656
+          "visit_count": 1,
+          "last_seen_ts": 1790368712.6596956
         }
       ]
     },
     {
       "place_id": 24,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.6679814,
-      "last_seen_ts": 1790359818.6679816,
-      "label": "wp_0030_1786110839_827068088_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.6658287,
+      "last_seen_ts": 1790368712.665829,
+      "label": "wp_0027_1786110833_973277452_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.6679792
+          "last_seen_ts": 1790368712.6658258
         }
       ]
     },
     {
       "place_id": 25,
-      "visit_count": 1,
-      "first_seen_ts": 1790359818.673598,
-      "last_seen_ts": 1790359818.673598,
-      "label": "wp_0031_1786110842_288034573_pointcloud_sensor.npy",
+      "visit_count": 2,
+      "first_seen_ts": 1790368712.6785893,
+      "last_seen_ts": 1790368712.6919541,
+      "label": "wp_0028_1786110836_440355510_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
-          "visit_count": 1,
-          "last_seen_ts": 1790359818.673596
+          "visit_count": 2,
+          "last_seen_ts": 1790368712.6919744
         }
       ]
     },
     {
       "place_id": 26,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.678607,
-      "last_seen_ts": 1790359818.6786075,
-      "label": "wp_0032_1786110844_443873693_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.7034328,
+      "last_seen_ts": 1790368712.703433,
+      "label": "wp_0030_1786110839_827068088_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.678605
+          "last_seen_ts": 1790368712.7034292
         }
       ]
     },
     {
       "place_id": 27,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.6835566,
-      "last_seen_ts": 1790359818.6835566,
-      "label": "wp_0033_1786110846_621693765_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.7104447,
+      "last_seen_ts": 1790368712.7104447,
+      "label": "wp_0031_1786110842_288034573_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.6835546
+          "last_seen_ts": 1790368712.7104423
         }
       ]
     },
     {
       "place_id": 28,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.6874459,
-      "last_seen_ts": 1790359818.6874459,
-      "label": "wp_0034_1786110848_783812983_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.7155116,
+      "last_seen_ts": 1790368712.7155116,
+      "label": "wp_0032_1786110844_443873693_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.687444
+          "last_seen_ts": 1790368712.7155094
         }
       ]
     },
     {
       "place_id": 29,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.6919787,
-      "last_seen_ts": 1790359818.691979,
-      "label": "wp_0035_1786110851_034892407_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.720843,
+      "last_seen_ts": 1790368712.720843,
+      "label": "wp_0033_1786110846_621693765_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.6919773
+          "last_seen_ts": 1790368712.7208405
         }
       ]
     },
     {
       "place_id": 30,
-      "visit_count": 2,
-      "first_seen_ts": 1790359818.69584,
-      "last_seen_ts": 1790359818.6996403,
-      "label": "wp_0036_1786110853_303313462_pointcloud_sensor.npy",
+      "visit_count": 1,
+      "first_seen_ts": 1790368712.725151,
+      "last_seen_ts": 1790368712.725151,
+      "label": "wp_0034_1786110848_783812983_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
-          "visit_count": 2,
-          "last_seen_ts": 1790359818.6996489
+          "visit_count": 1,
+          "last_seen_ts": 1790368712.725149
         }
       ]
     },
     {
       "place_id": 31,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.703457,
-      "last_seen_ts": 1790359818.703457,
-      "label": "wp_0038_1786110857_704847204_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.7298884,
+      "last_seen_ts": 1790368712.7298884,
+      "label": "wp_0035_1786110851_034892407_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.703455
+          "last_seen_ts": 1790368712.729886
         }
       ]
     },
     {
       "place_id": 32,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.7069578,
-      "last_seen_ts": 1790359818.7069578,
-      "label": "wp_0039_1786110859_885130042_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.7339776,
+      "last_seen_ts": 1790368712.7339776,
+      "label": "wp_0036_1786110853_303313462_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.7069554
+          "last_seen_ts": 1790368712.7339754
         }
       ]
     },
     {
       "place_id": 33,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.7104132,
-      "last_seen_ts": 1790359818.7104135,
-      "label": "wp_0040_1786110862_074439400_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.7379951,
+      "last_seen_ts": 1790368712.7379956,
+      "label": "wp_0037_1786110855_431987905_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.7104115
+          "last_seen_ts": 1790368712.7379935
         }
       ]
     },
     {
       "place_id": 34,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.714129,
-      "last_seen_ts": 1790359818.714129,
-      "label": "wp_0041_1786110864_257403650_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.7417767,
+      "last_seen_ts": 1790368712.7417767,
+      "label": "wp_0038_1786110857_704847204_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.714127
+          "last_seen_ts": 1790368712.7417748
         }
       ]
     },
     {
       "place_id": 35,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.7207828,
-      "last_seen_ts": 1790359818.7207828,
-      "label": "wp_0042_1786110867_735037066_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.7453625,
+      "last_seen_ts": 1790368712.7453625,
+      "label": "wp_0039_1786110859_885130042_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.7207808
+          "last_seen_ts": 1790368712.7453601
         }
       ]
     },
     {
       "place_id": 36,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.72464,
-      "last_seen_ts": 1790359818.7246404,
-      "label": "wp_0043_1786110869_459793103_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.748912,
+      "last_seen_ts": 1790368712.7489123,
+      "label": "wp_0040_1786110862_074439400_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.724638
+          "last_seen_ts": 1790368712.7489097
         }
       ]
     },
     {
       "place_id": 37,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.7290542,
-      "last_seen_ts": 1790359818.7290542,
-      "label": "wp_0044_1786110871_890164907_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.7531555,
+      "last_seen_ts": 1790368712.7531555,
+      "label": "wp_0041_1786110864_257403650_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.7290523
+          "last_seen_ts": 1790368712.753153
         }
       ]
     },
     {
       "place_id": 38,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.7343388,
-      "last_seen_ts": 1790359818.7343388,
-      "label": "wp_0045_1786110875_797788964_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.7603667,
+      "last_seen_ts": 1790368712.760367,
+      "label": "wp_0042_1786110867_735037066_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.7343369
+          "last_seen_ts": 1790368712.7603645
         }
       ]
     },
     {
       "place_id": 39,
-      "visit_count": 2,
-      "first_seen_ts": 1790359818.7384655,
-      "last_seen_ts": 1790359818.7427676,
-      "label": "wp_0046_1786110877_623831178_pointcloud_sensor.npy",
+      "visit_count": 1,
+      "first_seen_ts": 1790368712.7643328,
+      "last_seen_ts": 1790368712.7643328,
+      "label": "wp_0043_1786110869_459793103_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
-          "visit_count": 2,
-          "last_seen_ts": 1790359818.742777
+          "visit_count": 1,
+          "last_seen_ts": 1790368712.7643309
         }
       ]
     },
     {
       "place_id": 40,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.745842,
-      "last_seen_ts": 1790359818.7458422,
-      "label": "wp_0048_1786110882_231659630_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.7697093,
+      "last_seen_ts": 1790368712.7697093,
+      "label": "wp_0044_1786110871_890164907_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.7458403
+          "last_seen_ts": 1790368712.769707
         }
       ]
     },
     {
       "place_id": 41,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.7490942,
-      "last_seen_ts": 1790359818.7490942,
-      "label": "wp_0049_1786110884_487242058_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.7755628,
+      "last_seen_ts": 1790368712.7755628,
+      "label": "wp_0045_1786110875_797788964_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.7490923
+          "last_seen_ts": 1790368712.7755604
         }
       ]
     },
     {
       "place_id": 42,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.7540517,
-      "last_seen_ts": 1790359818.7540517,
-      "label": "wp_0050_1786110886_733587627_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.7799172,
+      "last_seen_ts": 1790368712.7799172,
+      "label": "wp_0046_1786110877_623831178_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.7540493
+          "last_seen_ts": 1790368712.7799158
         }
       ]
     },
     {
       "place_id": 43,
-      "visit_count": 2,
-      "first_seen_ts": 1790359818.7585685,
-      "last_seen_ts": 1790359818.762886,
-      "label": "wp_0051_1786110889_044540237_pointcloud_sensor.npy",
+      "visit_count": 1,
+      "first_seen_ts": 1790368712.7848523,
+      "last_seen_ts": 1790368712.7848525,
+      "label": "wp_0047_1786110880_036724625_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
-          "visit_count": 2,
-          "last_seen_ts": 1790359818.762897
+          "visit_count": 1,
+          "last_seen_ts": 1790368712.7848504
         }
       ]
     },
     {
       "place_id": 44,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.767394,
-      "last_seen_ts": 1790359818.767394,
-      "label": "wp_0053_1786110892_857554149_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.788133,
+      "last_seen_ts": 1790368712.788133,
+      "label": "wp_0048_1786110882_231659630_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.767392
+          "last_seen_ts": 1790368712.788131
         }
       ]
     },
     {
       "place_id": 45,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.770284,
-      "last_seen_ts": 1790359818.770284,
-      "label": "wp_0054_1786110893_434748995_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.7915893,
+      "last_seen_ts": 1790368712.7915893,
+      "label": "wp_0049_1786110884_487242058_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.7702813
+          "last_seen_ts": 1790368712.791587
         }
       ]
     },
     {
       "place_id": 46,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.7744823,
-      "last_seen_ts": 1790359818.7744823,
-      "label": "wp_0055_1786110895_983098037_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.7954028,
+      "last_seen_ts": 1790368712.795403,
+      "label": "wp_0050_1786110886_733587627_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.7744803
+          "last_seen_ts": 1790368712.7954009
         }
       ]
     },
     {
       "place_id": 47,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.778312,
-      "last_seen_ts": 1790359818.778312,
-      "label": "wp_0056_1786110898_113803612_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.7999575,
+      "last_seen_ts": 1790368712.7999578,
+      "label": "wp_0051_1786110889_044540237_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.77831
+          "last_seen_ts": 1790368712.7999551
         }
       ]
     },
     {
       "place_id": 48,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.7818325,
-      "last_seen_ts": 1790359818.7818327,
-      "label": "wp_0057_1786110900_312517888_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.8044994,
+      "last_seen_ts": 1790368712.8044994,
+      "label": "wp_0052_1786110891_254586139_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.7818303
+          "last_seen_ts": 1790368712.8044975
         }
       ]
     },
     {
       "place_id": 49,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.7856176,
-      "last_seen_ts": 1790359818.7856176,
-      "label": "wp_0058_1786110902_561299062_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.8091154,
+      "last_seen_ts": 1790368712.8091154,
+      "label": "wp_0053_1786110892_857554149_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.7856157
+          "last_seen_ts": 1790368712.809113
         }
       ]
     },
     {
       "place_id": 50,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.7893298,
-      "last_seen_ts": 1790359818.78933,
-      "label": "wp_0059_1786110904_705322433_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.8120906,
+      "last_seen_ts": 1790368712.8120906,
+      "label": "wp_0054_1786110893_434748995_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.7893279
+          "last_seen_ts": 1790368712.8120887
         }
       ]
     },
     {
       "place_id": 51,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.793185,
-      "last_seen_ts": 1790359818.793185,
-      "label": "wp_0060_1786110906_996540603_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.8166337,
+      "last_seen_ts": 1790368712.816634,
+      "label": "wp_0055_1786110895_983098037_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.793183
+          "last_seen_ts": 1790368712.8166313
         }
       ]
     },
     {
       "place_id": 52,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.8004286,
-      "last_seen_ts": 1790359818.8004286,
-      "label": "wp_0061_1786110911_029974585_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.8209875,
+      "last_seen_ts": 1790368712.8209877,
+      "label": "wp_0056_1786110898_113803612_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.8004262
+          "last_seen_ts": 1790368712.8209853
         }
       ]
     },
     {
       "place_id": 53,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.805819,
-      "last_seen_ts": 1790359818.805819,
-      "label": "wp_0062_1786110913_761533204_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.8248196,
+      "last_seen_ts": 1790368712.8248198,
+      "label": "wp_0057_1786110900_312517888_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.805817
+          "last_seen_ts": 1790368712.8248172
         }
       ]
     },
     {
       "place_id": 54,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.81046,
-      "last_seen_ts": 1790359818.8104603,
-      "label": "wp_0063_1786110915_784888738_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.829005,
+      "last_seen_ts": 1790368712.829005,
+      "label": "wp_0058_1786110902_561299062_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.810458
+          "last_seen_ts": 1790368712.8290029
         }
       ]
     },
     {
       "place_id": 55,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.8153808,
-      "last_seen_ts": 1790359818.8153808,
-      "label": "wp_0064_1786110932_253237814_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.83348,
+      "last_seen_ts": 1790368712.83348,
+      "label": "wp_0059_1786110904_705322433_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.8153791
+          "last_seen_ts": 1790368712.8334773
         }
       ]
     },
     {
       "place_id": 56,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.8191211,
-      "last_seen_ts": 1790359818.8191211,
-      "label": "wp_0065_1786110932_967540371_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.837604,
+      "last_seen_ts": 1790368712.8376043,
+      "label": "wp_0060_1786110906_996540603_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.8191192
+          "last_seen_ts": 1790368712.8376021
         }
       ]
     },
     {
       "place_id": 57,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.8226411,
-      "last_seen_ts": 1790359818.8226411,
-      "label": "wp_0066_1786110933_674769420_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.8453782,
+      "last_seen_ts": 1790368712.8453782,
+      "label": "wp_0061_1786110911_029974585_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.8226395
+          "last_seen_ts": 1790368712.8453753
         }
       ]
     },
     {
       "place_id": 58,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.826237,
-      "last_seen_ts": 1790359818.826237,
-      "label": "wp_0067_1786110934_348043416_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.8518002,
+      "last_seen_ts": 1790368712.8518007,
+      "label": "wp_0062_1786110913_761533204_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.826235
+          "last_seen_ts": 1790368712.8517957
         }
       ]
     },
     {
       "place_id": 59,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.8311114,
-      "last_seen_ts": 1790359818.8311117,
-      "label": "wp_0068_1786110937_004660033_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.8574297,
+      "last_seen_ts": 1790368712.85743,
+      "label": "wp_0063_1786110915_784888738_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.8311093
+          "last_seen_ts": 1790368712.8574271
         }
       ]
     },
     {
       "place_id": 60,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.836187,
-      "last_seen_ts": 1790359818.836187,
-      "label": "wp_0069_1786110940_365554920_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.8625011,
+      "last_seen_ts": 1790368712.8625011,
+      "label": "wp_0064_1786110932_253237814_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.836185
+          "last_seen_ts": 1790368712.8624985
         }
       ]
     },
     {
       "place_id": 61,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.841428,
-      "last_seen_ts": 1790359818.8414283,
-      "label": "wp_0070_1786110942_366332590_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.8664482,
+      "last_seen_ts": 1790368712.8664482,
+      "label": "wp_0065_1786110932_967540371_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.841426
+          "last_seen_ts": 1790368712.8664446
         }
       ]
     },
     {
       "place_id": 62,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.8455572,
-      "last_seen_ts": 1790359818.8455572,
-      "label": "wp_0071_1786110944_536043405_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.8709798,
+      "last_seen_ts": 1790368712.8709798,
+      "label": "wp_0066_1786110933_674769420_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.8455553
+          "last_seen_ts": 1790368712.8709776
         }
       ]
     },
     {
       "place_id": 63,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.850076,
-      "last_seen_ts": 1790359818.850076,
-      "label": "wp_0072_1786110946_871385067_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.874788,
+      "last_seen_ts": 1790368712.874788,
+      "label": "wp_0067_1786110934_348043416_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.850074
+          "last_seen_ts": 1790368712.8747861
         }
       ]
     },
     {
       "place_id": 64,
-      "visit_count": 2,
-      "first_seen_ts": 1790359818.854078,
-      "last_seen_ts": 1790359818.8585193,
-      "label": "wp_0073_1786110949_063811165_pointcloud_sensor.npy",
+      "visit_count": 1,
+      "first_seen_ts": 1790368712.8794672,
+      "last_seen_ts": 1790368712.8794672,
+      "label": "wp_0068_1786110937_004660033_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
-          "visit_count": 2,
-          "last_seen_ts": 1790359818.8585289
+          "visit_count": 1,
+          "last_seen_ts": 1790368712.8794649
         }
       ]
     },
     {
       "place_id": 65,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.8631542,
-      "last_seen_ts": 1790359818.8631544,
-      "label": "wp_0075_1786110953_376440498_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.8849347,
+      "last_seen_ts": 1790368712.8849347,
+      "label": "wp_0069_1786110940_365554920_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.8631523
+          "last_seen_ts": 1790368712.884932
         }
       ]
     },
     {
       "place_id": 66,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.867711,
-      "last_seen_ts": 1790359818.867711,
-      "label": "wp_0076_1786110955_658884402_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.8903716,
+      "last_seen_ts": 1790368712.8903718,
+      "label": "wp_0070_1786110942_366332590_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.8677092
+          "last_seen_ts": 1790368712.8903687
         }
       ]
     },
     {
       "place_id": 67,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.8728917,
-      "last_seen_ts": 1790359818.8728917,
-      "label": "wp_0077_1786110957_850320297_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.894718,
+      "last_seen_ts": 1790368712.894718,
+      "label": "wp_0071_1786110944_536043405_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.872889
+          "last_seen_ts": 1790368712.8947163
         }
       ]
     },
     {
       "place_id": 68,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.8786151,
-      "last_seen_ts": 1790359818.8786151,
-      "label": "wp_0078_1786110960_076400802_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.8994544,
+      "last_seen_ts": 1790368712.8994544,
+      "label": "wp_0072_1786110946_871385067_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.878613
+          "last_seen_ts": 1790368712.8994524
         }
       ]
     },
     {
       "place_id": 69,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.8846343,
-      "last_seen_ts": 1790359818.8846347,
-      "label": "wp_0079_1786110962_292318022_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.903918,
+      "last_seen_ts": 1790368712.9039183,
+      "label": "wp_0073_1786110949_063811165_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.884632
+          "last_seen_ts": 1790368712.9039164
         }
       ]
     },
     {
       "place_id": 70,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.8930852,
-      "last_seen_ts": 1790359818.8930852,
-      "label": "wp_0080_1786110964_330732628_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.90867,
+      "last_seen_ts": 1790368712.90867,
+      "label": "wp_0074_1786110951_234635998_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.893083
+          "last_seen_ts": 1790368712.9086676
         }
       ]
     },
     {
       "place_id": 71,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.897213,
-      "last_seen_ts": 1790359818.8972132,
-      "label": "wp_0081_1786110964_820388845_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.9135418,
+      "last_seen_ts": 1790368712.9135418,
+      "label": "wp_0075_1786110953_376440498_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.8972106
+          "last_seen_ts": 1790368712.9135401
         }
       ]
     },
     {
       "place_id": 72,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.9007015,
-      "last_seen_ts": 1790359818.9007015,
-      "label": "wp_0082_1786110965_135305664_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.9184425,
+      "last_seen_ts": 1790368712.9184425,
+      "label": "wp_0076_1786110955_658884402_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.900699
+          "last_seen_ts": 1790368712.91844
         }
       ]
     },
     {
       "place_id": 73,
-      "visit_count": 2,
-      "first_seen_ts": 1790359818.906205,
-      "last_seen_ts": 1790359818.9161403,
-      "label": "wp_0083_1786110967_956511321_pointcloud_sensor.npy",
+      "visit_count": 1,
+      "first_seen_ts": 1790368712.9241967,
+      "last_seen_ts": 1790368712.9241967,
+      "label": "wp_0077_1786110957_850320297_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
-          "visit_count": 2,
-          "last_seen_ts": 1790359818.9161532
+          "visit_count": 1,
+          "last_seen_ts": 1790368712.9241934
         }
       ]
     },
     {
       "place_id": 74,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.924935,
-      "last_seen_ts": 1790359818.924935,
-      "label": "wp_0086_1786110976_912818963_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.9301174,
+      "last_seen_ts": 1790368712.9301176,
+      "label": "wp_0078_1786110960_076400802_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.9249334
+          "last_seen_ts": 1790368712.9301152
         }
       ]
     },
     {
       "place_id": 75,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.9282124,
-      "last_seen_ts": 1790359818.9282124,
-      "label": "wp_0087_1786110977_000305131_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.9367201,
+      "last_seen_ts": 1790368712.9367201,
+      "label": "wp_0079_1786110962_292318022_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.9282103
+          "last_seen_ts": 1790368712.9367175
         }
       ]
     },
     {
       "place_id": 76,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.9400449,
-      "last_seen_ts": 1790359818.9400449,
-      "label": "wp_0089_1786110983_201126277_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.9458768,
+      "last_seen_ts": 1790368712.9458768,
+      "label": "wp_0080_1786110964_330732628_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.9400427
+          "last_seen_ts": 1790368712.9458742
         }
       ]
     },
     {
       "place_id": 77,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.949181,
-      "last_seen_ts": 1790359818.949181,
-      "label": "wp_0091_1786110985_066126098_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.9498656,
+      "last_seen_ts": 1790368712.9498658,
+      "label": "wp_0081_1786110964_820388845_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.949179
+          "last_seen_ts": 1790368712.9498615
         }
       ]
     },
     {
       "place_id": 78,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.955092,
-      "last_seen_ts": 1790359818.9550922,
-      "label": "wp_0092_1786110986_479016729_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.954256,
+      "last_seen_ts": 1790368712.9542563,
+      "label": "wp_0082_1786110965_135305664_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.9550896
+          "last_seen_ts": 1790368712.954254
         }
       ]
     },
     {
       "place_id": 79,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.9594603,
-      "last_seen_ts": 1790359818.9594603,
-      "label": "wp_0093_1786110987_104771134_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.95992,
+      "last_seen_ts": 1790368712.95992,
+      "label": "wp_0083_1786110967_956511321_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.9594584
+          "last_seen_ts": 1790368712.9599175
         }
       ]
     },
     {
       "place_id": 80,
-      "visit_count": 1,
-      "first_seen_ts": 1790359818.9745827,
-      "last_seen_ts": 1790359818.9745827,
-      "label": "wp_0096_1786110995_909063360_pointcloud_sensor.npy",
+      "visit_count": 2,
+      "first_seen_ts": 1790368712.9652994,
+      "last_seen_ts": 1790368712.9889944,
+      "label": "wp_0084_1786110969_949497387_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
-          "visit_count": 1,
-          "last_seen_ts": 1790359818.9745805
+          "visit_count": 2,
+          "last_seen_ts": 1790368712.9890134
         }
       ]
     },
     {
       "place_id": 81,
       "visit_count": 1,
-      "first_seen_ts": 1790359818.9908316,
-      "last_seen_ts": 1790359818.9908316,
-      "label": "wp_0099_1786111002_129485858_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.9708316,
+      "last_seen_ts": 1790368712.9708316,
+      "label": "wp_0085_1786110972_281603040_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359818.990829
+          "last_seen_ts": 1790368712.9708292
         }
       ]
     },
     {
       "place_id": 82,
-      "visit_count": 2,
-      "first_seen_ts": 1790359818.9965103,
-      "last_seen_ts": 1790359819.005489,
-      "label": "wp_0100_1786111003_025830522_pointcloud_sensor.npy",
+      "visit_count": 1,
+      "first_seen_ts": 1790368712.980509,
+      "last_seen_ts": 1790368712.9805093,
+      "label": "wp_0086_1786110976_912818963_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
-          "visit_count": 2,
-          "last_seen_ts": 1790359819.0055032
+          "visit_count": 1,
+          "last_seen_ts": 1790368712.9805021
         }
       ]
     },
     {
       "place_id": 83,
       "visit_count": 1,
-      "first_seen_ts": 1790359819.0123127,
-      "last_seen_ts": 1790359819.0123127,
-      "label": "wp_0102_1786111008_713979527_pointcloud_sensor.npy",
+      "first_seen_ts": 1790368712.9838274,
+      "last_seen_ts": 1790368712.9838274,
+      "label": "wp_0087_1786110977_000305131_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359819.0123098
+          "last_seen_ts": 1790368712.9838252
         }
       ]
     },
     {
       "place_id": 84,
       "visit_count": 1,
-      "first_seen_ts": 1790359819.018673,
-      "last_seen_ts": 1790359819.018673,
+      "first_seen_ts": 1790368712.996808,
+      "last_seen_ts": 1790368712.996808,
+      "label": "wp_0089_1786110983_201126277_pointcloud_sensor.npy",
+      "angular_templates": [
+        {
+          "mean_yaw_rad": 0.0,
+          "visit_count": 1,
+          "last_seen_ts": 1790368712.9968052
+        }
+      ]
+    },
+    {
+      "place_id": 85,
+      "visit_count": 1,
+      "first_seen_ts": 1790368713.0073087,
+      "last_seen_ts": 1790368713.0073087,
+      "label": "wp_0091_1786110985_066126098_pointcloud_sensor.npy",
+      "angular_templates": [
+        {
+          "mean_yaw_rad": 0.0,
+          "visit_count": 1,
+          "last_seen_ts": 1790368713.0073066
+        }
+      ]
+    },
+    {
+      "place_id": 86,
+      "visit_count": 1,
+      "first_seen_ts": 1790368713.013435,
+      "last_seen_ts": 1790368713.0134351,
+      "label": "wp_0092_1786110986_479016729_pointcloud_sensor.npy",
+      "angular_templates": [
+        {
+          "mean_yaw_rad": 0.0,
+          "visit_count": 1,
+          "last_seen_ts": 1790368713.0134318
+        }
+      ]
+    },
+    {
+      "place_id": 87,
+      "visit_count": 1,
+      "first_seen_ts": 1790368713.0178938,
+      "last_seen_ts": 1790368713.0178938,
+      "label": "wp_0093_1786110987_104771134_pointcloud_sensor.npy",
+      "angular_templates": [
+        {
+          "mean_yaw_rad": 0.0,
+          "visit_count": 1,
+          "last_seen_ts": 1790368713.0178912
+        }
+      ]
+    },
+    {
+      "place_id": 88,
+      "visit_count": 1,
+      "first_seen_ts": 1790368713.0300422,
+      "last_seen_ts": 1790368713.0300422,
+      "label": "wp_0095_1786110992_665498920_pointcloud_sensor.npy",
+      "angular_templates": [
+        {
+          "mean_yaw_rad": 0.0,
+          "visit_count": 1,
+          "last_seen_ts": 1790368713.030039
+        }
+      ]
+    },
+    {
+      "place_id": 89,
+      "visit_count": 1,
+      "first_seen_ts": 1790368713.0353136,
+      "last_seen_ts": 1790368713.035314,
+      "label": "wp_0096_1786110995_909063360_pointcloud_sensor.npy",
+      "angular_templates": [
+        {
+          "mean_yaw_rad": 0.0,
+          "visit_count": 1,
+          "last_seen_ts": 1790368713.0353115
+        }
+      ]
+    },
+    {
+      "place_id": 90,
+      "visit_count": 1,
+      "first_seen_ts": 1790368713.048714,
+      "last_seen_ts": 1790368713.0487142,
+      "label": "wp_0098_1786111001_794402858_pointcloud_sensor.npy",
+      "angular_templates": [
+        {
+          "mean_yaw_rad": 0.0,
+          "visit_count": 1,
+          "last_seen_ts": 1790368713.0487106
+        }
+      ]
+    },
+    {
+      "place_id": 91,
+      "visit_count": 1,
+      "first_seen_ts": 1790368713.0539966,
+      "last_seen_ts": 1790368713.0539966,
+      "label": "wp_0099_1786111002_129485858_pointcloud_sensor.npy",
+      "angular_templates": [
+        {
+          "mean_yaw_rad": 0.0,
+          "visit_count": 1,
+          "last_seen_ts": 1790368713.0539942
+        }
+      ]
+    },
+    {
+      "place_id": 92,
+      "visit_count": 2,
+      "first_seen_ts": 1790368713.060063,
+      "last_seen_ts": 1790368713.069422,
+      "label": "wp_0100_1786111003_025830522_pointcloud_sensor.npy",
+      "angular_templates": [
+        {
+          "mean_yaw_rad": 0.0,
+          "visit_count": 2,
+          "last_seen_ts": 1790368713.0694385
+        }
+      ]
+    },
+    {
+      "place_id": 93,
+      "visit_count": 1,
+      "first_seen_ts": 1790368713.0767395,
+      "last_seen_ts": 1790368713.0767395,
+      "label": "wp_0102_1786111008_713979527_pointcloud_sensor.npy",
+      "angular_templates": [
+        {
+          "mean_yaw_rad": 0.0,
+          "visit_count": 1,
+          "last_seen_ts": 1790368713.076737
+        }
+      ]
+    },
+    {
+      "place_id": 94,
+      "visit_count": 1,
+      "first_seen_ts": 1790368713.0833492,
+      "last_seen_ts": 1790368713.0833495,
       "label": "wp_0103_1786111010_870643414_pointcloud_sensor.npy",
       "angular_templates": [
         {
           "mean_yaw_rad": 0.0,
           "visit_count": 1,
-          "last_seen_ts": 1790359819.0186703
+          "last_seen_ts": 1790368713.083347
         }
       ]
     }
