@@ -261,37 +261,83 @@ class SDRPlaceEncoder:
 
     def __init__(self, feature_ranges, feature_resolutions,
                  feature_sizes=None, active_bits=21, seed=42):
+        """
+        Parameters
+        ----------
+        feature_ranges : Sequence[(lo, hi)]
+        feature_resolutions : Sequence[float]
+        feature_sizes : int or Sequence[int], optional
+            If int, same size for every feature. If Sequence, per-feature.
+            Defaults to 400 bits per feature.
+        active_bits : int or Sequence[int]
+            If int, same active bits per feature. If Sequence, per-feature.
+            Defaults to 21.
+        seed : int
+            RNG seed for RDSE reproducibility.
+        """
         n_feat = len(feature_ranges)
-        if feature_sizes is None:
-            feature_sizes = [400] * n_feat
 
+        # --- Normalize feature_sizes to a list ---
+        if feature_sizes is None:
+            sizes = [400] * n_feat
+        elif isinstance(feature_sizes, int):
+            sizes = [feature_sizes] * n_feat
+        else:
+            sizes = list(feature_sizes)
+            if len(sizes) != n_feat:
+                raise ValueError(
+                    f"feature_sizes has {len(sizes)} entries, "
+                    f"expected {n_feat}."
+                )
+
+        # --- Normalize active_bits to a list ---
+        if isinstance(active_bits, int):
+            active_bits_list = [active_bits] * n_feat
+        else:
+            active_bits_list = list(active_bits)
+            if len(active_bits_list) != n_feat:
+                raise ValueError(
+                    f"active_bits has {len(active_bits_list)} entries, "
+                    f"expected {n_feat}."
+                )
+
+        # --- Save configuration ---
         self.encoders = []
         self.feature_ranges = list(feature_ranges)
         self.feature_resolutions = list(feature_resolutions)
-        self.feature_sizes = list(feature_sizes)
-        self.active_bits = active_bits
+        self.feature_sizes = sizes
+        self.active_bits_list = active_bits_list
         self.seed = seed
 
+        # --- Instantiate one RDSE per feature ---
         for i in range(n_feat):
             lo, hi = feature_ranges[i]
             resolution = feature_resolutions[i]
+            size = sizes[i]
+            w = active_bits_list[i]
 
+            # Sanity check: buckets vs. size (empirical rule from RDSE)
             n_buckets = (hi - lo) / max(resolution, 1e-12)
-            if n_buckets > feature_sizes[i] / 2:
+            if n_buckets > size / 2:
                 raise ValueError(
                     f"Feature {i}: too many buckets ({n_buckets:.0f}) "
-                    f"for size {feature_sizes[i]}. "
-                    f"Increase resolution or size."
+                    f"for size {size}. Increase resolution or size."
+                )
+
+            # Sanity check: active bits must be < size
+            if w >= size:
+                raise ValueError(
+                    f"Feature {i}: active_bits ({w}) >= size ({size})."
                 )
 
             params = RDSE_Parameters()
-            params.size       = feature_sizes[i]
-            params.activeBits = active_bits
+            params.size       = size
+            params.activeBits = w
             params.resolution = resolution
             params.seed       = seed
             self.encoders.append(RDSE(params))
 
-        self.total_size = sum(self.feature_sizes)
+        self.total_size = sum(sizes)
 
     def encode(self, desc_vector: np.ndarray) -> np.ndarray:
         """

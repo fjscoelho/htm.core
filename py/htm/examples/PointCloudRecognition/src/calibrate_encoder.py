@@ -229,16 +229,16 @@ def check_rdse_params(
 def build_encoder_from_stats(
     stats: dict,
     num_buckets: int = 50,
-    feature_sizes: int | Sequence[int] = 2000,   # aceita int OU lista
-    active_bits: int = 21,
+    feature_sizes: int | Sequence[int] = 2000,
+    active_bits: int | Sequence[int] = 21,
     seed: int = 42,
 ) -> SDRPlaceEncoder:
     """
     Build a fully calibrated SDRPlaceEncoder from global statistics.
 
-    feature_sizes can be:
-        - an int → same size for every feature
-        - a Sequence[int] → per-feature sizes
+    feature_sizes and active_bits can be:
+        - an int → same value for every feature
+        - a Sequence → per-feature values
 
     Raises
     ------
@@ -248,42 +248,59 @@ def build_encoder_from_stats(
     lo, hi = get_encoder_ranges(stats)
     resolutions = compute_resolutions(lo, hi, num_buckets)
 
-    # Normalize feature_sizes to a list
     n_feat = len(lo)
+
+    # --- Normalize feature_sizes ---
     if isinstance(feature_sizes, int):
         sizes = [feature_sizes] * n_feat
     else:
         sizes = list(feature_sizes)
         if len(sizes) != n_feat:
             raise ValueError(
-                f"feature_sizes has {len(sizes)} entries "
-                f"but there are {n_feat} features."
+                f"feature_sizes has {len(sizes)} entries, "
+                f"expected {n_feat}."
+            )
+
+    # --- Normalize active_bits ---
+    if isinstance(active_bits, int):
+        active_list = [active_bits] * n_feat
+    else:
+        active_list = list(active_bits)
+        if len(active_list) != n_feat:
+            raise ValueError(
+                f"active_bits has {len(active_list)} entries, "
+                f"expected {n_feat}."
             )
 
     # ---- Diagnostic table ----
     print(f"\n{'#':>3} | {'feature':<14} | {'buckets':>8} | {'size':>6} "
-          f"| {'ratio':>7} | {'spars':>6} | status")
-    print("-" * 72)
-    for i, (res, sz) in enumerate(zip(resolutions, sizes)):
+          f"| {'w':>3} | {'ratio':>7} | {'spars':>6} | status")
+    print("-" * 78)
+    for i in range(n_feat):
+        res = resolutions[i]
+        sz = sizes[i]
+        w = active_list[i]
         nb = max(1, int((hi[i] - lo[i]) / max(res, 1e-12)))
-        ratio = (active_bits * nb) / max(sz, 1)
-        spars = active_bits / max(sz, 1)
+        ratio = (w * nb) / max(sz, 1)
+        spars = w / max(sz, 1)
         flags = []
         if ratio > 2.0:
             flags.append("RATIO HIGH")
         if spars > 0.3:
             flags.append("SPARSITY HIGH")
+        if w < 20:
+            flags.append("W<20")
         status = "OK" if not flags else " ".join(flags)
         print(f"{i:>3} | {FEATURE_NAMES[i]:<14} | {nb:>8d} | {sz:>6d} "
-              f"| {ratio:>7.2f} | {spars:>6.3f} | {status}")
+              f"| {w:>3d} | {ratio:>7.2f} | {spars:>6.3f} | {status}")
     print()
 
     # ---- Pre-flight collision check ----
-    for i, (res, sz) in enumerate(zip(resolutions, sizes)):
-        nb = max(1, int((hi[i] - lo[i]) / max(res, 1e-12)))
+    for i in range(n_feat):
+        nb = max(1, int((hi[i] - lo[i]) / max(resolutions[i], 1e-12)))
         check_rdse_params(
-            size=sz,
-            active_bits=active_bits,
+            size=sizes[i],
+            active_bits=active_list[i],
             num_buckets=nb,
             feature_index=i,
             feature_name=FEATURE_NAMES[i] if i < len(FEATURE_NAMES) else "",
@@ -294,7 +311,7 @@ def build_encoder_from_stats(
         feature_ranges=list(zip(lo.tolist(), hi.tolist())),
         feature_resolutions=resolutions.tolist(),
         feature_sizes=sizes,
-        active_bits=active_bits,
+        active_bits=active_list,
         seed=seed,
     )
 
@@ -307,16 +324,22 @@ def save_encoder_config(
     hi: np.ndarray,
     resolutions: np.ndarray,
     feature_sizes: Sequence[int],
-    active_bits: int,
+    active_bits: int | Sequence[int],
     seed: int,
 ) -> None:
     """Persist encoder parameters to a JSON file."""
+    # Normalize active_bits to a list for JSON
+    if isinstance(active_bits, int):
+        active_bits_list = [active_bits] * len(feature_sizes)
+    else:
+        active_bits_list = list(active_bits)
+
     config = {
         "feature_ranges":      list(zip(np.asarray(lo).tolist(),
                                         np.asarray(hi).tolist())),
         "feature_resolutions": np.asarray(resolutions).tolist(),
         "feature_sizes":       list(feature_sizes),
-        "active_bits":         active_bits,
+        "active_bits":         active_bits_list,
         "seed":                seed,
         "feature_names":       FEATURE_NAMES,
     }
@@ -330,10 +353,9 @@ def load_encoder_from_config(path: Path) -> SDRPlaceEncoder:
         feature_ranges=config["feature_ranges"],
         feature_resolutions=config["feature_resolutions"],
         feature_sizes=config["feature_sizes"],
-        active_bits=config["active_bits"],
+        active_bits=config["active_bits"],   # pode ser int ou list
         seed=config["seed"],
     )
-
 
 # ============================================================
 # 6. Summary table
@@ -353,14 +375,14 @@ def print_encoder_summary(
     print("-" * 88)
     for i, name in enumerate(FEATURE_NAMES):
         size = encoder.feature_sizes[i]
-        w = encoder.active_bits
+        w = encoder.active_bits_list[i]
         nb = max(1, int((hi[i] - lo[i]) / max(resolutions[i], 1e-12)))
         print(f"{i:>3} | {name:<14} | {lo[i]:>10.4f} | {hi[i]:>10.4f} "
               f"| {resolutions[i]:>11.6f} | {size:>6} | "
               f"{w:>3} | {nb:>8d}")
 
     total_size = encoder.total_size
-    total_active = encoder.active_bits * len(FEATURE_NAMES)
+    total_active = sum(encoder.active_bits_list)
     print("-" * 88)
     print(f"Total SDR size  : {total_size} bits")
     print(f"Total active    : {total_active} bits")
@@ -377,9 +399,8 @@ if __name__ == "__main__":
     DATA_DIR = Path("/home/fabio/Documents/SPOT_Data/extracted_spot_ros2_data")
     CONFIG_PATH = Path("encoder_config.json")
 
-    NUM_BUCKETS   = 50      # buckets per feature
-    ACTIVE_BITS   = 21      # active bits per feature (keep fixed)
-    SEED          = 42      # RNG seed for reproducibility
+    NUM_BUCKETS   = 50
+    SEED          = 42
 
     # ------------------------------------------------------------
     # Feature sizes (bits per feature)
@@ -398,8 +419,8 @@ if __name__ == "__main__":
     #     # eigvals (3): λ1, λ2 redundant with each other; λ3 is unique
     #     840,  840,  2520,
     #     # hist_z (10): low variance but independent → moderate
-    #     1680, 1680, 1680, 1680, 1680,
-    #     1680, 1680, 1680, 1680, 1680,
+    #     840, 840, 840, 840, 840,
+    #     840, 840, 840, 840, 840,
     #     # hist_r (10): most discriminative → full
     #     2520, 2520, 2520, 2520, 2520,
     #     2520, 2520, 2520, 2520, 2520,
@@ -412,32 +433,61 @@ if __name__ == "__main__":
     #     2520,   # mean_height  (new, informative)
     #     2520,   # std_height   (new, informative)
     # ]
-    # FEATURE_SIZES = [
-    #     600, 600, 1500,
-    #     1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000,
-    #     1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500,
-    #     1500, 1000, 600, 1500, 1500, 1500, 1500,
-    # ]
-    FEATURE_SIZES = [
-            600, 600, 1500,
-            600, 600, 600, 600, 600, 600, 600, 600, 600, 600,
-            2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500,
-            1500, 1000, 600, 1500, 1500, 1500, 1500,
-        ]
 
-    # Sanity check
+    FEATURE_SIZES = [
+            2000, 2000, 600,
+            2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000,
+            600, 600, 600, 600, 600, 600, 600, 600, 600, 600,
+            2000, 2000, 600, 2000, 600, 2000, 2000,
+        ]
+    # ------------------------------------------------------------
+    # Active bits per feature
+    # ------------------------------------------------------------
+    # Intuition: larger SDRs can afford more active bits.
+    # Rule of thumb: w ≈ 1.5% of size, with a floor of 21.
+    # We set w proportional to sqrt(size) or to size / 100, capped.
+    # For this experiment: give more active bits to larger features.
+    ACTIVE_BITS = [
+            # eigvals (3)
+            21, 21, 21,             # size 840, 840, 2520
+            # hist_z (10)
+            21, 21, 21, 21, 21,
+            21, 21, 21, 21, 21,     # size 1680
+            # hist_r (10)
+            21, 21, 21, 21, 21,
+            21, 21, 21, 21, 21,     # size 2520
+            # scalars (7)
+            21,   # height       (2520)
+            21,   # density      (1680)
+            21,   # volume       (840)
+            21,   # mean_radius  (1344)
+            21,   # std_radius   (2520)
+            21,   # mean_height  (2520)
+            21,   # std_height   (2520)
+        ]
+    
+    # Sanity checks
     n_expected = len(FEATURE_NAMES)
     if len(FEATURE_SIZES) != n_expected:
         raise SystemExit(
             f"FEATURE_SIZES has {len(FEATURE_SIZES)} entries, "
             f"expected {n_expected}."
         )
-    total_bits = sum(FEATURE_SIZES)
-    print(f"Feature sizes: {len(FEATURE_SIZES)} features, "
-          f"total = {total_bits} bits "
-          f"(avg = {total_bits / len(FEATURE_SIZES):.0f} bits/feature)")
+    if len(ACTIVE_BITS) != n_expected:
+        raise SystemExit(
+            f"ACTIVE_BITS has {len(ACTIVE_BITS)} entries, "
+            f"expected {n_expected}."
+        )
+    if any(w >= s for w, s in zip(ACTIVE_BITS, FEATURE_SIZES)):
+        raise SystemExit("Some features have active_bits >= size.")
 
-    # Outlier thresholds (set reject_outliers=False to disable)
+    total_bits = sum(FEATURE_SIZES)
+    total_active = sum(ACTIVE_BITS)
+    print(f"Feature config: {len(FEATURE_SIZES)} features, "
+          f"{total_bits} bits, {total_active} active "
+          f"({100 * total_active / total_bits:.2f}% sparsity)")
+
+    # Outlier thresholds
     REJECT_OUTLIERS  = True
     MAX_MEAN_RADIUS  = 50.0
     MAX_VOLUME       = 5000.0
@@ -483,7 +533,7 @@ if __name__ == "__main__":
         seed=SEED,
     )
 
-    # ---- 5. Summary table ----
+    # ---- 5. Summary ----
     print_encoder_summary(encoder, stats, num_buckets=NUM_BUCKETS)
 
     # ---- 6. Save config ----
@@ -510,3 +560,4 @@ if __name__ == "__main__":
     print(f"  Active bits   : {int(sdr.sum())}")
     print(f"  Sparsity      : {sdr.mean():.4f} "
           f"({100 * sdr.mean():.2f} %)")
+

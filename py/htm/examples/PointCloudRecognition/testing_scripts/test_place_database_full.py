@@ -7,8 +7,9 @@ Consecutive waypoints often look alike (same place), so we expect a mix of
 matches and new-place creations. This script reports per-waypoint behavior
 and global statistics.
 
-Optionally, it can plot pairs of point clouds that matched each other, so
-you can visually inspect whether the matches are legitimate.
+The `matched_wp` column always shows the waypoint that produced the best
+overlap, even when the match was rejected by the threshold (useful to see
+"almost matches").
 
 Usage
 -----
@@ -75,9 +76,7 @@ def plot_match_pair(
     wp_new: str,
     wp_stored: str,
 ):
-    """
-    Plot the two point clouds (top view) side by side for visual inspection.
-    """
+    """Plot the two point clouds (top view) side by side."""
     pc_new = PointCloud.from_npy(npy_new)
     pc_stored = PointCloud.from_npy(npy_stored)
 
@@ -135,47 +134,55 @@ def main():
         yaw_tolerance_deg=YAW_TOLERANCE_DEG,
     )
 
-    # Store the source filename per place so we can reload it for plotting
-    place_source_file: dict[int, Path] = {}
+    # Track the source waypoint index and file per place_id
+    place_source_wp_idx: dict[int, int] = {}     # place_id -> wp_idx
+    place_source_file: dict[int, Path] = {}      # place_id -> file path
 
     # Collect matches for later plotting
     match_records: list[dict] = []
 
     # ---- 4. Feed dataset in chronological order ----
     print(f"{'wp':>5} | {'N pts':>7} | {'active':>7} | {'overlap':>8} "
-          f"| {'ratio':>6} | {'place':>5} | {'match':>5} | {'templ':>5}")
-    print("-" * 72)
+          f"| {'ratio':>6} | {'place':>5} | {'match':>5} | {'templ':>5} "
+          f"| {'best_wp':>8}")
+    print("-" * 90)
 
     t0 = time.time()
-    for npy_path in npy_paths:
+    for wp_idx, npy_path in enumerate(npy_paths):
         sdr = encode_path(encoder, npy_path)
         n_active = int(sdr.sum())
-        pc = PointCloud.from_npy(npy_path)  # for N pts display and plotting
+        pc = PointCloud.from_npy(npy_path)
 
-        # Diagnostic: best match before committing
+        # ---- Diagnostic: best match before committing ----
         best_idx, best_overlap, best_ratio = find_best_match(sdr, db)
 
-        # If plotting is enabled and this will be a match, record the pair
-        # BEFORE we call match_or_create (so we know which stored place won).
+        # Determine the wp that produced the best overlap.
+        # This works even if best_idx == -1 (empty database).
+        best_wp_idx: int | None = None
+        stored_npy_path: Path | None = None
+        if best_idx >= 0:
+            best_place = db.places[best_idx]
+            best_wp_idx = place_source_wp_idx.get(best_place.place_id)
+            stored_npy_path = place_source_file.get(best_place.place_id)
+
+        # Determine whether this will be a match
         will_match = (
             best_idx >= 0
             and best_ratio >= args.match_threshold
         )
-        stored_npy_path: Path | None = None
-        if will_match and best_idx >= 0:
-            stored_place = db.places[best_idx]
-            stored_npy_path = place_source_file.get(stored_place.place_id)
 
-        # Commit to the database
+        # ---- Commit to the database ----
         place_id, matched, template_idx = db.match_or_create(
             sdr, yaw_rad=0.0, label=npy_path.name,
         )
 
-        # If this was a new place, remember which file created it
+        # If this was a new place, remember which waypoint and file created it
         if not matched:
+            place_source_wp_idx[place_id] = wp_idx
             place_source_file[place_id] = npy_path
 
-        # Record match info for later plotting
+        # ---- Record match info for later plotting ----
+        # Only record actual matches (matched=True) as candidates for plotting.
         if matched and stored_npy_path is not None:
             match_records.append({
                 "place_id":       place_id,
@@ -186,10 +193,21 @@ def main():
                 "overlap_ratio":  best_ratio,
             })
 
-        wp_tag = npy_path.name.split("_")[1]
+        # ---- Format the "best_wp" column ----
+        # Always shows the wp that produced the best overlap, even if the
+        # match was rejected by the threshold.
+        if best_wp_idx is not None:
+            best_wp_str = f"wp_{best_wp_idx:04d}"
+        else:
+            best_wp_str = "-"
+
+        # Current waypoint tag
+        wp_tag = npy_path.name.split("_")[1]  # e.g. "0000"
+
         print(f"{wp_tag:>5} | {pc.n_points:>7d} | {n_active:>7d} | "
               f"{best_overlap:>8d} | {best_ratio:>6.3f} | "
-              f"{place_id:>5d} | {str(matched):>5} | {template_idx:>5d}")
+              f"{place_id:>5d} | {str(matched):>5} | {template_idx:>5d} | "
+              f"{best_wp_str:>8}")
 
     elapsed = time.time() - t0
     print(f"\nProcessed {len(npy_paths)} clouds in {elapsed:.2f}s "
@@ -213,8 +231,6 @@ def main():
         print(f"\n[plot] Plotting {n_to_plot} of {len(match_records)} matches "
               f"(use --max-plots to change).")
 
-        # Sort matches by overlap ratio descending, so the most confident
-        # matches are plotted first (most useful for inspection).
         match_records_sorted = sorted(
             match_records, key=lambda r: -r["overlap_ratio"]
         )
@@ -233,7 +249,6 @@ def main():
                 wp_stored=rec["wp_stored"],
             )
 
-        # Keep the last figure alive until user closes it
         print("\n[plot] Close the plot windows to finish.")
         plt.show()
 
