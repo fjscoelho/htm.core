@@ -229,12 +229,16 @@ def check_rdse_params(
 def build_encoder_from_stats(
     stats: dict,
     num_buckets: int = 50,
-    feature_sizes: int = 2000,
+    feature_sizes: int | Sequence[int] = 2000,   # aceita int OU lista
     active_bits: int = 21,
     seed: int = 42,
 ) -> SDRPlaceEncoder:
     """
     Build a fully calibrated SDRPlaceEncoder from global statistics.
+
+    feature_sizes can be:
+        - an int → same size for every feature
+        - a Sequence[int] → per-feature sizes
 
     Raises
     ------
@@ -243,7 +247,18 @@ def build_encoder_from_stats(
     """
     lo, hi = get_encoder_ranges(stats)
     resolutions = compute_resolutions(lo, hi, num_buckets)
-    sizes = [feature_sizes] * len(lo)
+
+    # Normalize feature_sizes to a list
+    n_feat = len(lo)
+    if isinstance(feature_sizes, int):
+        sizes = [feature_sizes] * n_feat
+    else:
+        sizes = list(feature_sizes)
+        if len(sizes) != n_feat:
+            raise ValueError(
+                f"feature_sizes has {len(sizes)} entries "
+                f"but there are {n_feat} features."
+            )
 
     # ---- Diagnostic table ----
     print(f"\n{'#':>3} | {'feature':<14} | {'buckets':>8} | {'size':>6} "
@@ -282,7 +297,6 @@ def build_encoder_from_stats(
         active_bits=active_bits,
         seed=seed,
     )
-
 
 # ============================================================
 # 5. Persistence
@@ -364,24 +378,79 @@ if __name__ == "__main__":
     CONFIG_PATH = Path("encoder_config.json")
 
     NUM_BUCKETS   = 50      # buckets per feature
-    FEATURE_SIZES = 2000    # bits per feature
-    ACTIVE_BITS   = 21      # active bits per feature
+    ACTIVE_BITS   = 21      # active bits per feature (keep fixed)
     SEED          = 42      # RNG seed for reproducibility
+
+    # ------------------------------------------------------------
+    # Feature sizes (bits per feature)
+    # ------------------------------------------------------------
+    # Reasoning: features with high mutual correlation (see
+    # diagnose_feature_redundancy.py) receive fewer bits. Features
+    # that are independent and informative receive more.
+    #
+    # Correlation blocks found in the dataset:
+    #   - eigval_1, eigval_2, volume, mean_radius  (all scale-related)
+    #   - eigval_3, mean_height, std_height        (vertical-related)
+    # hist_z is independent (but low variance) — keep moderate size.
+    # hist_r is the most discriminative block — give it full size.
+    # ------------------------------------------------------------
+    # FEATURE_SIZES = [
+    #     # eigvals (3): λ1, λ2 redundant with each other; λ3 is unique
+    #     840,  840,  2520,
+    #     # hist_z (10): low variance but independent → moderate
+    #     1680, 1680, 1680, 1680, 1680,
+    #     1680, 1680, 1680, 1680, 1680,
+    #     # hist_r (10): most discriminative → full
+    #     2520, 2520, 2520, 2520, 2520,
+    #     2520, 2520, 2520, 2520, 2520,
+    #     # scalars (7)
+    #     2520,   # height       (independent, informative)
+    #     1680,   # density      (independent, moderate)
+    #     840,    # volume       (redundant with eigval_1/2)
+    #     1344,   # mean_radius  (redundant with volume)
+    #     2520,   # std_radius   (more informative than mean_radius)
+    #     2520,   # mean_height  (new, informative)
+    #     2520,   # std_height   (new, informative)
+    # ]
+    # FEATURE_SIZES = [
+    #     600, 600, 1500,
+    #     1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000,
+    #     1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500,
+    #     1500, 1000, 600, 1500, 1500, 1500, 1500,
+    # ]
+    FEATURE_SIZES = [
+            600, 600, 1500,
+            600, 600, 600, 600, 600, 600, 600, 600, 600, 600,
+            2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500,
+            1500, 1000, 600, 1500, 1500, 1500, 1500,
+        ]
+
+    # Sanity check
+    n_expected = len(FEATURE_NAMES)
+    if len(FEATURE_SIZES) != n_expected:
+        raise SystemExit(
+            f"FEATURE_SIZES has {len(FEATURE_SIZES)} entries, "
+            f"expected {n_expected}."
+        )
+    total_bits = sum(FEATURE_SIZES)
+    print(f"Feature sizes: {len(FEATURE_SIZES)} features, "
+          f"total = {total_bits} bits "
+          f"(avg = {total_bits / len(FEATURE_SIZES):.0f} bits/feature)")
 
     # Outlier thresholds (set reject_outliers=False to disable)
     REJECT_OUTLIERS  = True
-    MAX_MEAN_RADIUS  = 50.0     # 20.0
-    MAX_VOLUME       = 5000.0   # 1000.0
-    MAX_EIGVAL_1     = 1000.0   # 200.0
-    MIN_POINTS       = 100      # mantém (p05 = 13624, ninguém perto)
+    MAX_MEAN_RADIUS  = 50.0
+    MAX_VOLUME       = 5000.0
+    MAX_EIGVAL_1     = 1000.0
+    MIN_POINTS       = 100
 
     # ---- 1. Discover dataset ----
     npy_paths = sorted(DATA_DIR.glob("*.npy"))
-    print(f"Found {len(npy_paths)} point clouds in {DATA_DIR}")
+    print(f"\nFound {len(npy_paths)} point clouds in {DATA_DIR}")
     if not npy_paths:
         raise SystemExit("No .npy files found. Check DATA_DIR.")
 
-    # ---- 2. Collect statistics (with outlier filtering) ----
+    # ---- 2. Collect statistics ----
     print("\nCollecting global statistics...")
     stats, V, rejected = collect_global_stats(
         npy_paths,
@@ -397,7 +466,6 @@ if __name__ == "__main__":
     # ---- 3. Report rejected clouds ----
     if rejected:
         print(f"\n  Rejected {len(rejected)} cloud(s):")
-        # Group by reason category for readability
         for name, reason in rejected[:20]:
             print(f"    - {name}: {reason}")
         if len(rejected) > 20:
@@ -425,13 +493,13 @@ if __name__ == "__main__":
         path=CONFIG_PATH,
         lo=lo, hi=hi,
         resolutions=resolutions,
-        feature_sizes=[FEATURE_SIZES] * len(lo),
+        feature_sizes=FEATURE_SIZES,
         active_bits=ACTIVE_BITS,
         seed=SEED,
     )
     print(f"\nConfig saved to: {CONFIG_PATH.resolve()}")
 
-    # ---- 7. Smoke test: encode a sample cloud ----
+    # ---- 7. Smoke test ----
     sample_path = npy_paths[0]
     pc = PointCloud.from_npy(sample_path)
     desc = PlaceDescriptor.from_pointcloud(pc)
