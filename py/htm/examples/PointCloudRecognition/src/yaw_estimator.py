@@ -349,50 +349,57 @@ def estimate_yaw(
     icp_n_starts: int = 6,
     icp_span_deg: float = 30.0,
     icp_max_dist: float = 1.0,
+    method: str = "stratified",     # "simple" or "stratified"
+    n_rings: int = 3,
 ) -> YawEstimate:
     """
     Estimate the relative yaw of pc_b with respect to pc_a.
 
-    The two point clouds must be from the same place (same room or area).
-    The estimator is invariant to translation and does not depend on the
-    placement of the origin.
-
     Parameters
     ----------
-    pc_a, pc_b : PointCloud or (N,3) arrays
-    n_bins : int
-        Number of angular bins (360 -> 1° resolution).
-    use_centroid : bool
-        If True, angles are computed relative to the XY centroid.
-        If False, relative to the sensor origin.
-    refine_icp : bool
-        If True, refine the histogram estimate with multi-start 2D ICP.
-    icp_n_starts, icp_span_deg, icp_max_dist : parameters for ICP refinement.
-
-    Returns
-    -------
-    YawEstimate
+    method : {"simple", "stratified"}
+        - "simple": single angular histogram (original behavior).
+        - "stratified": angular histogram split into radial rings;
+          disambiguates symmetric scenes at low cost.
+    n_rings : int
+        Number of radial rings when method="stratified". 3 is a good
+        default. Use 2 for speed, 4-5 for more discrimination.
     """
-    hist_a = angular_histogram(pc_a, n_bins=n_bins, use_centroid=use_centroid)
-    hist_b = angular_histogram(pc_b, n_bins=n_bins, use_centroid=use_centroid)
+    if method == "stratified":
+        hist_a = angular_histogram_stratified(
+            pc_a, n_bins=n_bins, n_rings=n_rings,
+            use_centroid=use_centroid,
+        )
+        hist_b = angular_histogram_stratified(
+            pc_b, n_bins=n_bins, n_rings=n_rings,
+            use_centroid=use_centroid,
+        )
+        yaw_rad, confidence, ambiguity = \
+            estimate_yaw_from_stratified_histograms(hist_a, hist_b, refine_peak=False)
+        method_str = "stratified"
+    else:
+        hist_a = angular_histogram(pc_a, n_bins=n_bins,
+                                   use_centroid=use_centroid)
+        hist_b = angular_histogram(pc_b, n_bins=n_bins,
+                                   use_centroid=use_centroid)
+        yaw_rad, confidence, ambiguity = \
+            estimate_yaw_from_histograms(hist_a, hist_b)
+        method_str = "histogram"
 
-    yaw_rad, confidence, ambiguity = estimate_yaw_from_histograms(hist_a, hist_b)
-
-    method = "histogram"
     if refine_icp:
-        yaw_rad, rmse = refine_with_icp(
+        yaw_rad, _ = refine_with_icp(
             pc_a, pc_b, initial_yaw=yaw_rad,
             n_starts=icp_n_starts, span_deg=icp_span_deg,
             max_correspondence_dist=icp_max_dist,
         )
-        method = "histogram+icp"
+        method_str = method_str + "+icp"
 
     return YawEstimate(
         yaw_rad=yaw_rad,
         yaw_deg=float(np.rad2deg(yaw_rad)),
         confidence=confidence,
         ambiguity=ambiguity,
-        method=method,
+        method=method_str,
     )
 
 
@@ -422,3 +429,317 @@ def plot_angular_histograms(
     ax.set_title("Angular histograms")
     ax.legend()
     return ax
+
+def angular_histogram_stratified(
+    pc,
+    n_bins: int = 360,
+    n_rings: int = 3,
+    use_centroid: bool = True,
+    ring_boundaries: Optional[np.ndarray] = None,
+) -> np.ndarray:
+    """
+    Compute an angular histogram stratified by radial distance.
+
+    Divides points into `n_rings` concentric rings around the anchor (XY
+    centroid or sensor origin), then computes a separate angular histogram
+    for each ring. Returns a 2D array of shape (n_rings, n_bins).
+
+    This preserves information about the joint (theta, radius) distribution
+    and helps disambiguate scenes with bilateral symmetry.
+
+    Parameters
+    ----------
+    pc : PointCloud or (N,3) array
+    n_bins : int
+        Number of angular bins (per ring).
+    n_rings : int
+        Number of radial rings. 2-4 is usually enough.
+    use_centroid : bool
+        Anchor for angles and radii.
+    ring_boundaries : optional array of length (n_rings+1)
+        Custom ring boundaries in the same units as `r`. If None, uses
+        quantile-based boundaries so that each ring has roughly the same
+        number of points.
+
+    Returns
+    -------
+    hist : np.ndarray, shape (n_rings, n_bins)
+        Each row sums to the fraction of points in that ring; all entries
+        sum to 1.
+    """
+    points = pc.points if hasattr(pc, "points") else np.asarray(pc)
+    xy = points[:, :2]
+
+    if use_centroid:
+        anchor = xy.mean(axis=0)
+    else:
+        anchor = np.array([0.0, 0.0])
+
+    rel = xy - anchor
+    theta = np.arctan2(rel[:, 1], rel[:, 0])       # (-pi, pi]
+    r = np.linalg.norm(rel, axis=1)                # radial distance
+
+    # --- Determine ring boundaries ---
+    if ring_boundaries is None:
+        # Quantile-based: each ring has ~ equal number of points
+        qs = np.linspace(0, 100, n_rings + 1)
+        ring_boundaries = np.percentile(r, qs)
+    ring_boundaries = np.asarray(ring_boundaries)
+    if len(ring_boundaries) != n_rings + 1:
+        raise ValueError("ring_boundaries must have n_rings+1 entries")
+
+    # --- Compute per-ring angular histograms ---
+    hist = np.zeros((n_rings, n_bins), dtype=np.float64)
+    total = len(r)
+    if total == 0:
+        return hist
+
+    for k in range(n_rings):
+        lo, hi = ring_boundaries[k], ring_boundaries[k + 1]
+        if k == n_rings - 1:
+            # Include the last boundary to avoid excluding r == max
+            mask = (r >= lo) & (r <= hi)
+        else:
+            mask = (r >= lo) & (r < hi)
+        if mask.sum() == 0:
+            continue
+        h, _ = np.histogram(theta[mask], bins=n_bins,
+                            range=(-np.pi, np.pi))
+        hist[k] = h.astype(np.float64) / total
+
+    return hist
+
+def estimate_yaw_from_stratified_histograms(
+    hist_a: np.ndarray,
+    hist_b: np.ndarray,
+    ring_weights: Optional[np.ndarray] = None,
+    refine_peak: bool = True,
+) -> Tuple[float, float, float]:
+    """
+    Estimate yaw from stratified angular histograms.
+
+    Combines the correlations of all rings into a single score per
+    candidate yaw, then picks the peak.
+
+    Parameters
+    ----------
+    hist_a, hist_b : np.ndarray, shape (n_rings, n_bins)
+    ring_weights : optional array of length n_rings
+        Weight per ring when combining correlations. If None, weights are
+        chosen automatically: outer rings get more weight (more spatial
+        diversity, less prone to being dominated by near-field clutter).
+    refine_peak : bool
+        Sub-bin refinement of the peak.
+
+    Returns
+    -------
+    yaw_rad, confidence, ambiguity : same as estimate_yaw_from_histograms
+    """
+    n_rings, n_bins = hist_a.shape
+    if hist_b.shape != hist_a.shape:
+        raise ValueError("Histograms must have the same shape")
+
+    # --- Default weights: emphasize outer rings ---
+    if ring_weights is None:
+        ring_weights = np.linspace(1.0, 2.0, n_rings)
+        ring_weights = ring_weights / ring_weights.sum()
+
+    # --- Sum weighted correlations ---
+    combined = np.zeros(n_bins, dtype=np.float64)
+    for k in range(n_rings):
+        c = _circular_cross_correlation(hist_a[k], hist_b[k])
+        combined += ring_weights[k] * c
+
+    # --- Find peak ---
+    peak_idx = int(np.argmax(combined))
+    peak_val = float(combined[peak_idx])
+
+    print(f"[debug] peak_idx = {peak_idx}, "
+          f"peak_val = {peak_val:.3e}, "
+          f"peak_angle = {np.rad2deg(2*np.pi*peak_idx/n_bins):.2f}°")
+
+    if refine_peak and n_bins >= 3:
+        left  = combined[(peak_idx - 1) % n_bins]
+        right = combined[(peak_idx + 1) % n_bins]
+        denom = 2.0 * peak_val - left - right
+        delta = 0.5 * (right - left) / denom if abs(denom) > 1e-12 else 0.0
+        delta = float(np.clip(delta, -1.0, 1.0))
+        peak_pos = (peak_idx + delta) % n_bins
+    else:
+        peak_pos = float(peak_idx)
+
+    yaw_rad = 2.0 * np.pi * peak_pos / n_bins
+    yaw_rad = ((yaw_rad + np.pi) % (2 * np.pi)) - np.pi
+
+    print(f"[debug] yaw_rad = {np.rad2deg(yaw_rad):.2f}°")
+
+    # --- Confidence (peak-to-sidelobe) ---
+    n_exclude = max(2, n_bins // 20)
+    mask = np.ones(n_bins, dtype=bool)
+    for d in range(-n_exclude, n_exclude + 1):
+        mask[(peak_idx + d) % n_bins] = False
+    sidelobes = combined[mask]
+    sidelobe_mean = float(sidelobes.mean())
+    sidelobe_std  = float(sidelobes.std())
+    confidence = (peak_val - sidelobe_mean) / max(sidelobe_std, 1e-12)
+
+    # --- Ambiguity (second peak) ---
+    combined_copy = combined.copy()
+    for d in range(-n_exclude, n_exclude + 1):
+        combined_copy[(peak_idx + d) % n_bins] = 0.0
+    second_val = float(combined_copy.max())
+    ambiguity = second_val / max(peak_val, 1e-12)
+
+    return yaw_rad, confidence, ambiguity
+
+# ============================================================
+# 6. Rich visualization
+# ============================================================
+def plot_yaw_diagnostics(
+    pc_a,
+    pc_b,
+    n_bins: int = 360,
+    method: str = "stratified",
+    n_rings: int = 10,
+    use_centroid: bool = True,
+    estimated_yaw_deg: Optional[float] = None,
+    gt_yaw_deg: Optional[float] = None,
+    title: str = "",
+):
+    """
+    Plot the histograms and correlation used to compute the yaw estimate.
+
+    Layout:
+        Row 1: aggregated angular histogram of A vs B (overlaid)
+        Row 2: circular cross-correlation with peak marked
+        Row 3 (if stratified): per-ring histograms (A in blue, B in orange)
+                               for a subset of rings (max 4 shown)
+
+    Parameters
+    ----------
+    estimated_yaw_deg : optional
+        If given, drawn as a marker on the correlation plot.
+    gt_yaw_deg : optional
+        Ground-truth yaw (drawn as a vertical line on the correlation plot
+        for comparison).
+    title : str
+        Overall title.
+    """
+    import matplotlib.pyplot as plt
+
+    # ---- Compute histograms ----
+    if method == "stratified":
+        hist_a = angular_histogram_stratified(
+            pc_a, n_bins=n_bins, n_rings=n_rings, use_centroid=use_centroid
+        )
+        hist_b = angular_histogram_stratified(
+            pc_b, n_bins=n_bins, n_rings=n_rings, use_centroid=use_centroid
+        )
+        # Aggregate across rings for display
+        agg_a = hist_a.sum(axis=0)
+        agg_b = hist_b.sum(axis=0)
+        # Combined correlation
+        ring_weights = np.linspace(1.0, 2.0, n_rings)
+        ring_weights = ring_weights / ring_weights.sum()
+        combined = np.zeros(n_bins)
+        for k in range(n_rings):
+            combined += ring_weights[k] * _circular_cross_correlation(
+                hist_a[k], hist_b[k]
+            )
+    else:
+        agg_a = angular_histogram(pc_a, n_bins=n_bins,
+                                  use_centroid=use_centroid)
+        agg_b = angular_histogram(pc_b, n_bins=n_bins,
+                                  use_centroid=use_centroid)
+        combined = _circular_cross_correlation(agg_a, agg_b)
+        hist_a = None
+        hist_b = None
+
+    # ---- Determine how many rows we need ----
+    n_rows = 2 if method == "simple" else 3
+    fig, axes = plt.subplots(n_rows, 1, figsize=(14, 3.2 * n_rows))
+
+    theta_deg = np.linspace(-180, 180, n_bins, endpoint=False)
+
+    # ---- Row 1: aggregated angular histograms ----
+    ax = axes[0]
+    ax.plot(theta_deg, agg_a, label="A (stored)", color="tab:blue",
+            linewidth=1.2)
+    ax.plot(theta_deg, agg_b, label="B (query)", color="tab:orange",
+            linewidth=1.2, alpha=0.8)
+    ax.set_xlabel("angle (deg)")
+    ax.set_ylabel("density")
+    ax.set_title("Aggregated angular histograms")
+    ax.legend(loc="upper right")
+    ax.grid(alpha=0.3)
+
+    # ---- Row 2: correlation ----
+    ax = axes[1]
+
+    # Build the angle axis matching the FFT bin indexing:
+    # bin k corresponds to angle 2*pi*k/n_bins, wrapped to (-180, 180].
+    bin_angles_rad = 2 * np.pi * np.arange(n_bins) / n_bins
+    bin_angles_rad = ((bin_angles_rad + np.pi) % (2 * np.pi)) - np.pi
+    bin_angles_deg = np.rad2deg(bin_angles_rad)
+
+    # For display, sort by angle so the x-axis increases monotonically:
+    order = np.argsort(bin_angles_deg)
+    x_plot = bin_angles_deg[order]
+    y_plot = combined[order]
+
+    ax.plot(x_plot, y_plot, color="tab:green", linewidth=1.2)
+
+    # Peak position — use the same angle convention as the computation:
+    peak_idx = int(np.argmax(combined))
+    peak_angle_deg = bin_angles_deg[peak_idx]
+    ax.axvline(peak_angle_deg, color="red", linestyle="--",
+            linewidth=1.5, label=f"peak @ {peak_angle_deg:+.1f}°")
+
+    # Estimate (already in degrees, wrapped)
+    if estimated_yaw_deg is not None:
+        est = ((estimated_yaw_deg + 180) % 360) - 180
+        ax.axvline(est, color="purple", linestyle=":",
+                linewidth=1.5,
+                label=f"estimate = {estimated_yaw_deg:+.2f}°")
+
+    # Ground truth
+    if gt_yaw_deg is not None:
+        gt = ((gt_yaw_deg + 180) % 360) - 180
+        ax.axvline(gt, color="black", linestyle="-.",
+                linewidth=1.5,
+                label=f"ground truth = {gt_yaw_deg:+.2f}°")
+
+    ax.set_xlabel("shift (deg)")
+    ax.set_ylabel("correlation")
+    ax.set_title("Circular cross-correlation")
+    ax.legend(loc="upper right")
+    ax.grid(alpha=0.3)
+
+    # ---- Row 3 (stratified only): per-ring histograms ----
+    if method == "stratified" and hist_a is not None:
+        ax = axes[2]
+        # Show at most 4 rings, evenly spaced
+        n_show = min(4, n_rings)
+        ring_indices = np.linspace(0, n_rings - 1, n_show).astype(int)
+        colors_a = plt.cm.Blues(np.linspace(0.4, 0.9, n_show))
+        colors_b = plt.cm.Oranges(np.linspace(0.4, 0.9, n_show))
+        for i, k in enumerate(ring_indices):
+            ax.plot(theta_deg, hist_a[k], color=colors_a[i],
+                    linewidth=1.0,
+                    label=f"A ring {k}" if i == 0 else None,
+                    alpha=0.9)
+            ax.plot(theta_deg, hist_b[k], color=colors_b[i],
+                    linewidth=1.0, linestyle="--",
+                    label=f"B ring {k}" if i == 0 else None,
+                    alpha=0.9)
+        ax.set_xlabel("angle (deg)")
+        ax.set_ylabel("density")
+        ax.set_title(f"Per-ring histograms (showing "
+                     f"{n_show} of {n_rings} rings)")
+        ax.legend(loc="upper right", ncol=2)
+        ax.grid(alpha=0.3)
+
+    if title:
+        fig.suptitle(title, fontsize=14, fontweight="bold")
+    plt.tight_layout()
+    return fig

@@ -74,7 +74,7 @@ class PointCloud:
         return PointCloud(points=self.points @ R.T)
 
     # ---------- Visualization ----------
-    def plot_top_view(self, ax=None, show_centroid: bool = True):
+    def plot_top_view(self, ax=None, show_centroid: bool = False):
         """Plot top view (XY) with centroid highlighted."""
         if ax is None:
             _, ax = plt.subplots(figsize=(6, 6))
@@ -83,12 +83,12 @@ class PointCloud:
 
         if show_centroid:
             cx, cy = self.centroid_xy
-            ax.scatter([cx], [cy], s=120, c="red", marker="X",
+            ax.scatter([cx], [cy], s=75, c="red", marker="X",
                        edgecolors="black", linewidths=1.0, zorder=5,
                        label=f"centroid ({cx:.2f}, {cy:.2f})")
 
         # Mark the sensor origin
-        ax.scatter([0], [0], s=140, c="lime", marker="o",
+        ax.scatter([0], [0], s=75, c="lime", marker="o",
                    edgecolors="black", linewidths=1.0, zorder=6,
                    label="sensor origin")
 

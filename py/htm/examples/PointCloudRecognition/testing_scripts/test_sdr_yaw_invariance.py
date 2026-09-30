@@ -98,7 +98,8 @@ def test_place_discrimination(
     print(f"\nPlace discrimination:")
     print(f"  {label_a}: active={n_a}")
     print(f"  {label_b}: active={n_b}")
-    print(f"  Overlap      : {overlap}")
+    print(f"Overlap : {overlap} / {n_b} "
+              f"({100 * overlap / n_b:.1f} %)")
     print(f"  Union        : {union}")
     print(f"  Jaccard index: {jaccard:.3f}  (lower = more distinct)")
 
@@ -120,7 +121,7 @@ if __name__ == "__main__":
     if not npy_paths:
         raise SystemExit(f"No .npy files found in {DATA_DIR}")
 
-    sample_path = npy_paths[0]
+    sample_path = npy_paths[1]
     print(f"\nLoading sample: {sample_path.name}")
     pc = PointCloud.from_npy(sample_path)
 
@@ -130,7 +131,7 @@ if __name__ == "__main__":
 
     # 4. Discrimination test (optional): compare with a different cloud
     if len(npy_paths) >= 2:
-        other_path = npy_paths[len(npy_paths) // 2]  # middle of dataset
+        other_path = npy_paths[94]  # middle of dataset
         print(f"\nLoading different sample: {other_path.name}")
         pc_other = PointCloud.from_npy(other_path)
 

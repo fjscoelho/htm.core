@@ -73,12 +73,12 @@ def main():
 
         # --- Histogram only ---
         res_hist, t_hist = time_call(
-            estimate_yaw, pc, pc_rot, n_bins=360, refine_icp=False
+            estimate_yaw, pc, pc_rot, n_bins=360, method="stratified"
         )
 
         # --- Histogram + ICP ---
         res_icp, t_icp = time_call(
-            estimate_yaw, pc, pc_rot, n_bins=360, refine_icp=True
+            estimate_yaw, pc, pc_rot, n_bins=360, method="stratified", refine_icp=True
         )
 
         err_hist = wrap_err_deg(res_hist.yaw_deg, true_deg)
