@@ -554,10 +554,6 @@ def estimate_yaw_from_stratified_histograms(
     peak_idx = int(np.argmax(combined))
     peak_val = float(combined[peak_idx])
 
-    print(f"[debug] peak_idx = {peak_idx}, "
-          f"peak_val = {peak_val:.3e}, "
-          f"peak_angle = {np.rad2deg(2*np.pi*peak_idx/n_bins):.2f}°")
-
     if refine_peak and n_bins >= 3:
         left  = combined[(peak_idx - 1) % n_bins]
         right = combined[(peak_idx + 1) % n_bins]
@@ -570,8 +566,6 @@ def estimate_yaw_from_stratified_histograms(
 
     yaw_rad = 2.0 * np.pi * peak_pos / n_bins
     yaw_rad = ((yaw_rad + np.pi) % (2 * np.pi)) - np.pi
-
-    print(f"[debug] yaw_rad = {np.rad2deg(yaw_rad):.2f}°")
 
     # --- Confidence (peak-to-sidelobe) ---
     n_exclude = max(2, n_bins // 20)
@@ -591,6 +585,113 @@ def estimate_yaw_from_stratified_histograms(
     ambiguity = second_val / max(peak_val, 1e-12)
 
     return yaw_rad, confidence, ambiguity
+
+
+# ============================================================
+# 5b. Odometry disambiguation
+# ============================================================
+def _wrap_pi(angle_rad: float) -> float:
+    """Wrap an angle to (-pi, pi]."""
+    return ((angle_rad + np.pi) % (2 * np.pi)) - np.pi
+
+
+def resolve_yaw_ambiguity_with_odometry(
+    yaw_rad: float,
+    yaw_a_odom_rad: float,
+    yaw_b_odom_rad: float,
+    period_rad: float = np.pi,
+) -> Tuple[float, float]:
+    """
+    Disambiguate a yaw estimate using an odometric prediction.
+
+    An angular histogram (like PCA) is ambiguous: for a scene with
+    bilateral symmetry the histogram and its 180-degree rotation give
+    equally strong correlation peaks. Odometry drifts, but between two
+    passes through the same place the drift is usually far smaller than
+    the ambiguity period, so it is enough to pick the candidate closest
+    to the odometric prediction.
+
+    Parameters
+    ----------
+    yaw_rad : float
+        Raw estimate from the histogram method, in (-pi, pi].
+    yaw_a_odom_rad, yaw_b_odom_rad : float
+        Odometric yaw of the robot at the two captures. The odometric
+        prediction is ``wrap_pi(yaw_b - yaw_a)``.
+    period_rad : float
+        Ambiguity period. ``pi`` for the 180-degree flip (default).
+
+    Returns
+    -------
+    yaw_rad : float
+        Disambiguated yaw, in (-pi, pi].
+    yaw_rel_odom_rad : float
+        Odometric relative-yaw prediction, for reference.
+    """
+    yaw_rel_odom = _wrap_pi(yaw_b_odom_rad - yaw_a_odom_rad)
+
+    best = _wrap_pi(yaw_rad)
+    best_dist = abs(_wrap_pi(best - yaw_rel_odom))
+
+    # Number of alternative candidates that fit in a full turn.
+    n_alt = max(int(round(2 * np.pi / period_rad)) - 1, 1)
+    for k in range(1, n_alt + 1):
+        cand = _wrap_pi(yaw_rad + k * period_rad)
+        dist = abs(_wrap_pi(cand - yaw_rel_odom))
+        if dist < best_dist:
+            best, best_dist = cand, dist
+
+    return best, yaw_rel_odom
+
+
+def estimate_yaw_from_histograms_with_odometry(
+    hist_a: np.ndarray,
+    hist_b: np.ndarray,
+    yaw_a_odom_rad: float,
+    yaw_b_odom_rad: float,
+    refine_peak: bool = True,
+) -> Tuple[float, float, float]:
+    """
+    Simple-histogram yaw estimate with the 180-degree ambiguity resolved
+    by odometry.
+
+    Returns
+    -------
+    yaw_rad, confidence, ambiguity : same as estimate_yaw_from_histograms,
+        but ``yaw_rad`` is the candidate closest to the odometric
+        prediction.
+    """
+    yaw_rad, confidence, ambiguity = estimate_yaw_from_histograms(
+        hist_a, hist_b, refine_peak=refine_peak)
+    yaw_rad, _ = resolve_yaw_ambiguity_with_odometry(
+        yaw_rad, yaw_a_odom_rad, yaw_b_odom_rad)
+    return yaw_rad, confidence, ambiguity
+
+
+def estimate_yaw_from_stratified_histograms_with_odometry(
+    hist_a: np.ndarray,
+    hist_b: np.ndarray,
+    yaw_a_odom_rad: float,
+    yaw_b_odom_rad: float,
+    ring_weights: Optional[np.ndarray] = None,
+    refine_peak: bool = True,
+) -> Tuple[float, float, float]:
+    """
+    Stratified-histogram yaw estimate with the 180-degree ambiguity
+    resolved by odometry.
+
+    Returns
+    -------
+    yaw_rad, confidence, ambiguity : same as
+        estimate_yaw_from_stratified_histograms, but ``yaw_rad`` is the
+        candidate closest to the odometric prediction.
+    """
+    yaw_rad, confidence, ambiguity = estimate_yaw_from_stratified_histograms(
+        hist_a, hist_b, ring_weights=ring_weights, refine_peak=refine_peak)
+    yaw_rad, _ = resolve_yaw_ambiguity_with_odometry(
+        yaw_rad, yaw_a_odom_rad, yaw_b_odom_rad)
+    return yaw_rad, confidence, ambiguity
+
 
 # ============================================================
 # 6. Rich visualization

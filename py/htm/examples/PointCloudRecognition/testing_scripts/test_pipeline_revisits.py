@@ -51,7 +51,14 @@ sys.path.append(str(root_project))
 from src.place_encoder import PointCloud, PlaceDescriptor
 from src.calibrate_encoder import load_encoder_from_config
 from src.place_database import PlaceDatabase
-from src.yaw_estimator import estimate_yaw
+from src.yaw_estimator import (
+    angular_histogram,
+    angular_histogram_stratified,
+    estimate_yaw_from_histograms,
+    estimate_yaw_from_histograms_with_odometry,
+    estimate_yaw_from_stratified_histograms,
+    estimate_yaw_from_stratified_histograms_with_odometry,
+)
 from src.yaw_estimator_pca import (
     estimate_yaw_pca,
     estimate_yaw_pca_with_odometry,
@@ -116,19 +123,32 @@ def run_pipeline(
     yaw_tolerance_deg: float,
     gt_poses: Optional[dict[int, dict]] = None,
     verbose: bool = True,
+    yaw_method_opt: str = "auto",
+    hist_bins: int = 360,
+    hist_rings: int = 10,
 ):
     """
     Run the full pipeline over the dataset.
 
-    Yaw strategy:
-        - If `gt_poses` (odometry) is available: PCA-2D + odometry.
-        - Otherwise: stratified histogram (no odometry needed).
+    Yaw strategy (`yaw_method_opt`):
+        - "auto": PCA-2D + odometry if `gt_poses` is available, otherwise
+          the stratified angular histogram.
+        - "pca": plain 2D PCA.
+        - "pca+odom": 2D PCA disambiguated by odometry (needs `gt_poses`).
+        - "simple": single angular histogram + circular cross-correlation.
+        - "stratified": radial-ring angular histograms.
+        - "simple+odom", "stratified+odom": same as above, with the
+          180-degree ambiguity resolved by odometry (needs `gt_poses`).
 
     Parameters
     ----------
     gt_poses : dict[int, dict] or None
         Odometry-like poses (yaw_rad per waypoint). Used both to disambiguate
         PCA and to compute ground-truth relative yaw for reporting.
+    hist_bins : int
+        Angular bins for the histogram methods (default 360 = 1 deg).
+    hist_rings : int
+        Number of radial rings for "stratified".
     """
     db = PlaceDatabase(
         sdr_size=encoder.total_size,
@@ -186,36 +206,83 @@ def run_pipeline(
 
                 t_start_yaw = time.perf_counter()
 
-                # --- Always run PCA (fast) to get anisotropy for reporting ---
-                pca_res = estimate_yaw_pca(pc_a, pc_b)
-
                 yaw_deg: float = float("nan")
                 yaw_method: str = "?"
                 yaw_conf: float = float("nan")
                 yaw_ambig: float = float("nan")
+                anisotropy: float = float("nan")
+                hist_ms: float = float("nan")
+                corr_ms: float = float("nan")
 
-                if gt_poses is not None:
-                    # --- PCA + odometry (preferred) ---
-                    yaw_a_odom = gt_poses[stored_wp_idx]["yaw_rad"]
-                    yaw_b_odom = gt_poses[wp_idx]["yaw_rad"]
+                # ---- Pick the effective method ----
+                if yaw_method_opt == "auto":
+                    eff = "pca+odom" if gt_poses is not None else "stratified"
+                else:
+                    eff = yaw_method_opt
+
+                if eff == "pca":
+                    pca_res = estimate_yaw_pca(pc_a, pc_b)
+                    yaw_deg = pca_res.yaw_deg
+                    anisotropy = pca_res.anisotropy
+                    yaw_method = "pca2d"
+                elif eff == "pca+odom":
+                    if gt_poses is None:
+                        raise ValueError(
+                            "yaw method 'pca+odom' requires ground-truth poses"
+                        )
                     pca_final = estimate_yaw_pca_with_odometry(
                         pc_a, pc_b,
-                        yaw_a_odom_rad=yaw_a_odom,
-                        yaw_b_odom_rad=yaw_b_odom,
+                        yaw_a_odom_rad=gt_poses[stored_wp_idx]["yaw_rad"],
+                        yaw_b_odom_rad=gt_poses[wp_idx]["yaw_rad"],
                     )
                     yaw_deg = pca_final.yaw_deg
+                    anisotropy = pca_final.anisotropy
                     yaw_method = "pca2d+odom"
                 else:
-                    # --- Fallback: stratified histogram (no odometry) ---
-                    hist_res = estimate_yaw(
-                        pc_a, pc_b,
-                        n_bins=360, method="stratified", n_rings=10,
-                        refine_icp=False,
-                    )
-                    yaw_deg = hist_res.yaw_deg
-                    yaw_method = "stratified"
-                    yaw_conf = hist_res.confidence
-                    yaw_ambig = hist_res.ambiguity
+                    # --- Angular-histogram family ---
+                    hist_kind = eff.split("+")[0]     # simple | stratified
+                    use_odom = eff.endswith("+odom")
+                    if use_odom and gt_poses is None:
+                        raise ValueError(
+                            f"yaw method '{eff}' requires ground-truth poses"
+                        )
+
+                    # Time the histogram construction and the comparison
+                    # (cross-correlation) separately.
+                    t_h0 = time.perf_counter()
+                    if hist_kind == "stratified":
+                        ha = angular_histogram_stratified(
+                            pc_a, n_bins=hist_bins, n_rings=hist_rings)
+                        hb = angular_histogram_stratified(
+                            pc_b, n_bins=hist_bins, n_rings=hist_rings)
+                    else:
+                        ha = angular_histogram(pc_a, n_bins=hist_bins)
+                        hb = angular_histogram(pc_b, n_bins=hist_bins)
+                    t_h1 = time.perf_counter()
+
+                    if use_odom:
+                        yaw_a_odom = gt_poses[stored_wp_idx]["yaw_rad"]
+                        yaw_b_odom = gt_poses[wp_idx]["yaw_rad"]
+                        if hist_kind == "stratified":
+                            yaw_rad_h, yaw_conf, yaw_ambig = \
+                                estimate_yaw_from_stratified_histograms_with_odometry(
+                                    ha, hb, yaw_a_odom, yaw_b_odom)
+                        else:
+                            yaw_rad_h, yaw_conf, yaw_ambig = \
+                                estimate_yaw_from_histograms_with_odometry(
+                                    ha, hb, yaw_a_odom, yaw_b_odom)
+                    elif hist_kind == "stratified":
+                        yaw_rad_h, yaw_conf, yaw_ambig = \
+                            estimate_yaw_from_stratified_histograms(ha, hb)
+                    else:
+                        yaw_rad_h, yaw_conf, yaw_ambig = \
+                            estimate_yaw_from_histograms(ha, hb)
+                    t_h2 = time.perf_counter()
+
+                    yaw_deg = float(np.rad2deg(yaw_rad_h))
+                    yaw_method = eff
+                    hist_ms = (t_h1 - t_h0) * 1000.0
+                    corr_ms = (t_h2 - t_h1) * 1000.0
 
                 t_elapsed_ms = (time.perf_counter() - t_start_yaw) * 1000.0
 
@@ -240,8 +307,10 @@ def run_pipeline(
                     "yaw_err_deg":    yaw_gt_err,
                     "confidence":     yaw_conf,
                     "ambiguity":      yaw_ambig,
-                    "anisotropy":     pca_res.anisotropy,
+                    "anisotropy":     anisotropy,
                     "yaw_method":     yaw_method,
+                    "hist_ms":        hist_ms,
+                    "corr_ms":        corr_ms,
                     "time_ms":        t_elapsed_ms,
                     "wp_new_name":    npy_path.name,
                     "wp_stored_name": stored_path.name,
@@ -383,9 +452,12 @@ def print_summary(revisits: List[dict], n_total: int) -> None:
     print(f"  max    = {yaw.max():+.3f}")
 
     print(f"\nAnisotropy (PCA):")
-    print(f"  mean   = {aniso.mean():.3f}")
-    print(f"  min    = {aniso.min():.3f}")
-    print(f"  max    = {aniso.max():.3f}")
+    if np.isfinite(aniso).any():
+        print(f"  mean   = {np.nanmean(aniso):.3f}")
+        print(f"  min    = {np.nanmin(aniso):.3f}")
+        print(f"  max    = {np.nanmax(aniso):.3f}")
+    else:
+        print(f"  n/a (PCA not used)")
 
     print(f"\nOverlap ratio:")
     print(f"  mean   = {ratio.mean():.3f}")
@@ -402,30 +474,39 @@ def print_summary(revisits: List[dict], n_total: int) -> None:
 
 
 def print_yaw_comparison(revisits: List[dict]) -> None:
-    """Per-revisit table comparing estimated vs. GT yaw."""
+    """Per-revisit table: estimated vs. GT yaw, plus timing breakdown."""
     rows_with_gt = [r for r in revisits if r["yaw_gt_deg"] is not None]
     if not rows_with_gt:
         print("\n[yaw comparison] No ground-truth data available.")
         return
 
-    print("\n" + "=" * 105)
+    def _fmt(val, width: int):
+        if val is None or not np.isfinite(val):
+            return f"{'-':>{width}}"
+        return f"{val:>{width}.2f}"
+
+    print("\n" + "=" * 122)
     print("YAW COMPARISON: ESTIMATED vs. GROUND-TRUTH")
-    print("=" * 105)
+    print("=" * 122)
     print(f"{'wp_new':>6} | {'wp_stored':>9} | {'Δwp':>4} | "
           f"{'est_yaw':>9} | {'gt_yaw':>9} | {'err':>8} | "
-          f"{'aniso':>6} | {'method':>13} | {'t_ms':>7}")
-    print("-" * 105)
+          f"{'aniso':>6} | {'method':>13} | {'hist_ms':>8} | "
+          f"{'corr_ms':>8} | {'t_ms':>7}")
+    print("-" * 122)
     for r in rows_with_gt:
         print(f"{r['wp_new']:>6} | {r['wp_stored']:>9} | "
               f"{r['wp_delta']:>4} | "
               f"{r['yaw_deg']:>+9.2f} | {r['yaw_gt_deg']:>+9.2f} | "
               f"{r['yaw_err_deg']:>+8.2f} | "
-              f"{r['anisotropy']:>6.2f} | {r['yaw_method']:>13} | "
+              f"{_fmt(r.get('anisotropy'), 6)} | "
+              f"{r['yaw_method']:>13} | "
+              f"{_fmt(r.get('hist_ms'), 8)} | "
+              f"{_fmt(r.get('corr_ms'), 8)} | "
               f"{r['time_ms']:>7.2f}")
 
     errors = np.array([r["yaw_err_deg"] for r in rows_with_gt])
     abs_err = np.abs(errors)
-    print("-" * 105)
+    print("-" * 122)
     print(f"Yaw error (est - gt):")
     print(f"  mean       = {errors.mean():+.3f}°")
     print(f"  mean |err| = {abs_err.mean():.3f}°")
@@ -434,6 +515,24 @@ def print_yaw_comparison(revisits: List[dict]) -> None:
     print(f"  # < 10°    = {(abs_err < 10).sum()} / {len(abs_err)}")
     print(f"  # < 30°    = {(abs_err < 30).sum()} / {len(abs_err)}")
     print(f"  # > 90°    = {(abs_err > 90).sum()} / {len(abs_err)}")
+
+    # --- Timing breakdown for the histogram methods ---
+    hist_vals = np.array([r.get("hist_ms", np.nan) for r in rows_with_gt],
+                         dtype=float)
+    corr_vals = np.array([r.get("corr_ms", np.nan) for r in rows_with_gt],
+                         dtype=float)
+    tot_vals = np.array([r["time_ms"] for r in rows_with_gt], dtype=float)
+    if np.isfinite(hist_vals).any():
+        print("\nHistogram timing per comparison (ms):")
+        print(f"  hist build : mean={np.nanmean(hist_vals):.3f}  "
+              f"median={np.nanmedian(hist_vals):.3f}  "
+              f"max={np.nanmax(hist_vals):.3f}")
+        print(f"  comparison : mean={np.nanmean(corr_vals):.3f}  "
+              f"median={np.nanmedian(corr_vals):.3f}  "
+              f"max={np.nanmax(corr_vals):.3f}")
+        print(f"  total yaw  : mean={np.nanmean(tot_vals):.3f}  "
+              f"median={np.nanmedian(tot_vals):.3f}  "
+              f"max={np.nanmax(tot_vals):.3f}")
 
 
 # ============================================================
@@ -517,6 +616,161 @@ def plot_summary(revisits: List[dict]) -> None:
 
 
 # ============================================================
+# PCA-2D pair visualization
+# ============================================================
+def _centered_xy(pc, max_radius: Optional[float] = None) -> np.ndarray:
+    """Return XY points centered on their centroid, optionally radius-clipped.
+
+    Matches the centering used inside `estimate_yaw_pca`, so the plotted
+    principal axes pass through the plotted centroid at the origin.
+    """
+    xy = pc.points[:, :2].astype(np.float64)
+    xy = xy - xy.mean(axis=0)
+    if max_radius is not None:
+        r = np.linalg.norm(xy, axis=1)
+        xy = xy[r <= max_radius]
+    return xy
+
+
+def _draw_principal_axes(
+    ax,
+    phi_rad: float,
+    half_len: float,
+    color: str,
+    label: Optional[str] = None,
+    lw: float = 2.0,
+) -> None:
+    """Draw the PCA principal axis (solid) and its perpendicular (dashed)."""
+    dx, dy = np.cos(phi_rad), np.sin(phi_rad)
+    ax.plot([-dx * half_len, dx * half_len],
+            [-dy * half_len, dy * half_len],
+            color=color, lw=lw, label=label, zorder=5)
+    px, py = -np.sin(phi_rad), np.cos(phi_rad)
+    ax.plot([-px * half_len, px * half_len],
+            [-py * half_len, py * half_len],
+            color=color, lw=lw * 0.7, ls="--", alpha=0.6, zorder=5)
+
+
+def _plot_pca_pair(
+    pc_a,
+    pc_b,
+    record: dict,
+    max_radius: Optional[float] = None,
+    save_dir: Optional[Path] = None,
+) -> None:
+    """One figure (1x3) comparing the PCA-2D of a revisit pair.
+
+    Panels:
+        1. Cloud A (stored) with its principal axis phi_a.
+        2. Cloud B (new) with its principal axis phi_b.
+        3. Overlay of both (centroid-centered) with both axes and the
+           arc illustrating the angular difference Delta_phi = phi_b - phi_a.
+    """
+    res = estimate_yaw_pca(pc_a, pc_b, max_radius=max_radius,
+                           use_centroid=True)
+
+    xy_a = _centered_xy(pc_a, max_radius=max_radius)
+    xy_b = _centered_xy(pc_b, max_radius=max_radius)
+
+    scale = float(max(np.abs(xy_a).max(), np.abs(xy_b).max(), 1e-6)) * 1.15
+    phi_a, phi_b = res.phi_a_rad, res.phi_b_rad
+    delta_rad = _wrap_pi(phi_b - phi_a)
+    dphi_deg = float(np.rad2deg(delta_rad))
+
+    wp_a, wp_b = record["wp_stored"], record["wp_new"]
+    title = (f"revisit wp {wp_a} -> {wp_b}  | Δwp={record['wp_delta']}  "
+             f"| overlap={record['overlap_ratio']:.3f}  "
+             f"| anisotropy={record['anisotropy']:.2f}")
+
+    fig, axes = plt.subplots(1, 3, figsize=(20, 6.5))
+    fig.suptitle(title, fontsize=13)
+
+    # ---- Panel 1: cloud A ----
+    ax = axes[0]
+    ax.scatter(xy_a[:, 0], xy_a[:, 1], s=2, alpha=0.35, c="tab:blue")
+    _draw_principal_axes(ax, phi_a, scale, "tab:blue",
+                         label=f"φ_A={np.rad2deg(phi_a):+.1f}°")
+    ax.set_title(f"A — stored wp {wp_a}  (N={len(xy_a)})")
+    ax.set_aspect("equal"); ax.grid(alpha=0.3); ax.legend(fontsize=9)
+
+    # ---- Panel 2: cloud B ----
+    ax = axes[1]
+    ax.scatter(xy_b[:, 0], xy_b[:, 1], s=2, alpha=0.35, c="tab:orange")
+    _draw_principal_axes(ax, phi_b, scale, "tab:orange",
+                         label=f"φ_B={np.rad2deg(phi_b):+.1f}°")
+    ax.set_title(f"B — new wp {wp_b}  (N={len(xy_b)})")
+    ax.set_aspect("equal"); ax.grid(alpha=0.3); ax.legend(fontsize=9)
+
+    # ---- Panel 3: overlay + angular difference ----
+    ax = axes[2]
+    ax.scatter(xy_a[:, 0], xy_a[:, 1], s=2, alpha=0.25,
+               c="tab:blue", label=f"A (wp {wp_a})")
+    ax.scatter(xy_b[:, 0], xy_b[:, 1], s=2, alpha=0.25,
+               c="tab:orange", label=f"B (wp {wp_b})")
+    _draw_principal_axes(ax, phi_a, scale, "tab:blue")
+    _draw_principal_axes(ax, phi_b, scale, "tab:orange")
+
+    # Arc from phi_a sweeping to phi_b, illustrating the angular difference.
+    r_arc = scale * 0.55
+    theta = np.linspace(phi_a, phi_a + delta_rad, 64)
+    ax.plot(r_arc * np.cos(theta), r_arc * np.sin(theta),
+            color="k", lw=1.6, zorder=6)
+
+    r_lab = r_arc * 1.3
+    theta_mid = phi_a + delta_rad / 2.0
+    ax.annotate(f"Δφ={dphi_deg:+.1f}°",
+                xy=(r_lab * np.cos(theta_mid), r_lab * np.sin(theta_mid)),
+                fontsize=11, fontweight="bold", ha="center", va="center",
+                bbox=dict(boxstyle="round,pad=0.3", fc="white",
+                          ec="black", alpha=0.85), zorder=7)
+
+    ax.set_title("Overlay (centroid-centered) — principal axes")
+    ax.set_aspect("equal"); ax.grid(alpha=0.3)
+    ax.set_xlim(-scale, scale); ax.set_ylim(-scale, scale)
+    ax.legend(fontsize=9, loc="upper right")
+
+    for ax in axes:
+        ax.set_xlabel("x (m)"); ax.set_ylabel("y (m)")
+
+    plt.tight_layout(rect=(0, 0, 1, 0.95))
+
+    if save_dir is not None:
+        save_dir = Path(save_dir)
+        save_dir.mkdir(parents=True, exist_ok=True)
+        out = save_dir / f"pca_pair_wp{wp_a:04d}_wp{wp_b:04d}.png"
+        fig.savefig(out, dpi=120)
+        print(f"[plot-pca] saved {out}")
+
+    plt.show()
+
+
+def plot_pca_pairs(
+    revisits: List[dict],
+    data_dir: Path = DATA_DIR,
+    max_pairs: Optional[int] = None,
+    max_radius: Optional[float] = None,
+    save_dir: Optional[Path] = None,
+) -> None:
+    """Plot the PCA-2D comparison for each revisit pair."""
+    if not revisits:
+        print("[plot-pca] No revisits to plot.")
+        return
+
+    pairs = revisits[:max_pairs] if max_pairs else revisits
+    for record in pairs:
+        path_a = data_dir / record["wp_stored_name"]
+        path_b = data_dir / record["wp_new_name"]
+        if not path_a.exists() or not path_b.exists():
+            print(f"[plot-pca] Missing cloud(s) for wp "
+                  f"{record['wp_stored']} -> {record['wp_new']}; skipping.")
+            continue
+        pc_a = PointCloud.from_npy(path_a)
+        pc_b = PointCloud.from_npy(path_b)
+        _plot_pca_pair(pc_a, pc_b, record,
+                       max_radius=max_radius, save_dir=save_dir)
+
+
+# ============================================================
 # Main
 # ============================================================
 def main():
@@ -524,6 +778,17 @@ def main():
         description="Run the full place-recognition pipeline with yaw estimation."
     )
     parser.add_argument("--plot", action="store_true")
+    parser.add_argument("--plot-pca", action="store_true",
+                        help="Plot the PCA-2D (principal axes + angular "
+                             "difference) for each revisit pair.")
+    parser.add_argument("--plot-pca-max", type=int, default=None,
+                        help="Limit the number of PCA pair plots "
+                             "(default: all revisits).")
+    parser.add_argument("--pca-max-radius", type=float, default=None,
+                        help="Clip points beyond this XY radius (from the "
+                             "centroid) when computing PCA.")
+    parser.add_argument("--save-plots", type=Path, default=None,
+                        help="Directory to save PCA pair figures as PNG.")
     parser.add_argument("--match-threshold", type=float,
                         default=DEFAULT_MATCH_THRESHOLD)
     parser.add_argument("--temporal-filter", type=int,
@@ -537,6 +802,20 @@ def main():
     parser.add_argument("--odom-noise-deg", type=float, default=0.0,
                         help="Add Gaussian noise to GT yaw to simulate "
                              "odometry drift (default: 0.0).")
+    parser.add_argument("--yaw-method",
+                        choices=["auto", "pca", "pca+odom",
+                                 "simple", "stratified",
+                                 "simple+odom", "stratified+odom"],
+                        default="auto",
+                        help="Yaw estimator: 'simple'/'stratified' = angular "
+                             "histograms; the '-odom' variants resolve the "
+                             "180-degree ambiguity with odometry; "
+                             "'pca'/'pca+odom' = PCA-2D; 'auto' = pca+odom "
+                             "if GT poses exist, else stratified.")
+    parser.add_argument("--hist-bins", type=int, default=360,
+                        help="Angular bins for the histogram methods.")
+    parser.add_argument("--hist-rings", type=int, default=10,
+                        help="Rings for the stratified histogram method.")
     args = parser.parse_args()
 
     # ---- 1. Load encoder ----
@@ -564,6 +843,10 @@ def main():
               f"yaw comparison will be skipped, and the pipeline will "
               f"fall back to the stratified histogram.")
 
+    if args.yaw_method.endswith("+odom") and gt_poses is None:
+        raise SystemExit(f"[error] --yaw-method {args.yaw_method} requires a "
+                         "trajectory JSON (ground-truth/odometry poses).")
+
     # ---- 3. Discover dataset ----
     npy_paths = sorted(DATA_DIR.glob("*.npy"))
     print(f"Found {len(npy_paths)} point clouds\n")
@@ -580,6 +863,9 @@ def main():
         yaw_tolerance_deg=args.yaw_tolerance_deg,
         gt_poses=gt_poses,
         verbose=not args.no_verbose,
+        yaw_method_opt=args.yaw_method,
+        hist_bins=args.hist_bins,
+        hist_rings=args.hist_rings,
     )
     t_total = time.time() - t_start
 
@@ -594,6 +880,16 @@ def main():
     # ---- 7. Plots ----
     if args.plot:
         plot_summary(revisits)
+
+    # ---- 8. PCA-2D pair plots ----
+    if args.plot_pca:
+        plot_pca_pairs(
+            revisits,
+            data_dir=DATA_DIR,
+            max_pairs=args.plot_pca_max,
+            max_radius=args.pca_max_radius,
+            save_dir=args.save_plots,
+        )
 
 
 if __name__ == "__main__":
